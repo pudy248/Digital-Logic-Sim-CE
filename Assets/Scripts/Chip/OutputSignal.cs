@@ -1,6 +1,8 @@
-﻿using UnityEngine;
+﻿using Interaction.Display;
+using UnityEngine;
 
 // Output signal of a chip.
+[RequireComponent(typeof(SignalPinDisplay))]
 public class OutputSignal : ChipSignal {
 
 	protected override void Start () {

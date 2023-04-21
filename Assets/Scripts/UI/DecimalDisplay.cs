@@ -44,8 +44,7 @@ public class DecimalDisplay : MonoBehaviour
         {
             if (group[0].displayGroupDecimalValue)
             {
-                TMP_Text text = Instantiate(textPrefab);
-                text.transform.SetParent(transform, true);
+                TMP_Text text = Instantiate(textPrefab, transform, true);
                 displayGroups.Add(new SignalGroup() { signals = group, text = text });
             }
         }
@@ -67,7 +66,7 @@ public class DecimalDisplay : MonoBehaviour
             else
             {
                 text.gameObject.SetActive(true);
-                float yPos = (signals[0].transform.position.y + signals[signals.Length - 1].transform.position.y) / 2f;
+                float yPos = (signals[0].transform.position.y + signals[^1].transform.position.y) / 2f;
                 text.transform.position = new Vector3(editor.transform.position.x, yPos, -0.5f);
 
                 bool useTwosComplement = signals[0].useTwosComplement;

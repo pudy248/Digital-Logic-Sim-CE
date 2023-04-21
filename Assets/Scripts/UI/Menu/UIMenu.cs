@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -8,6 +9,7 @@ public class UIMenu : MonoBehaviour
     public UnityEvent onClickBG;
     [HideInInspector]
     public bool isActive = false;
+    event Action Finalizer;
 
     public void Open()
     {
@@ -19,6 +21,12 @@ public class UIMenu : MonoBehaviour
     {
         isActive = false;
         gameObject.SetActive(isActive);
+        Finalizer?.Invoke();
+    }
+
+    public void RegisterFinalizer(Action action)
+    {
+        Finalizer += action;
     }
 
 }

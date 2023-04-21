@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Drawing.Drawing2D;
 using System.Linq;
+using Interaction;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 
 public enum MenuType
 {
@@ -15,16 +17,16 @@ public enum MenuType
     NewFolderMenu = 3,
     SubmitMenu = 4,
     ClockMenu = 5,
-    EEPROMMenu = 7,
     EditFolderMenu = 6,
+    EEPROMMenu = 7,
+    SignalPropertiesMenu = 8
 };
 
 public class UIManager : MonoBehaviour
 {
     public static UIManager instance;
 
-    [Header("References")]
-    public GameObject createButton;
+    [Header("References")] public GameObject createButton;
     public GameObject updateButton;
     public GameObject outsideMenuArea;
     public TMP_Text ChipName;
@@ -40,6 +42,9 @@ public class UIManager : MonoBehaviour
     ClockMenu ClockMenu;
     EEPROMMenu EEPROMMenu;
     EditChipMenu editChipMenu;
+    [HideInInspector]
+    public PinPropertiesMenu PinPropertiesMenu;
+    
 
 
     void Awake()
@@ -52,11 +57,11 @@ public class UIManager : MonoBehaviour
         ClockMenu = FindObjectOfType<ClockMenu>(true);
         EEPROMMenu = FindObjectOfType<EEPROMMenu>(true);
         editChipMenu = FindObjectOfType<EditChipMenu>(true);
-
+        PinPropertiesMenu = FindObjectOfType<PinPropertiesMenu>(true);
     }
 
     public static void NewSubmitMenu(string header, string text,
-                                     UnityAction onSubmit)
+        UnityAction onSubmit)
     {
         SubmitMenu submitMenu = instance.Menus[MenuType.SubmitMenu].GetComponent<SubmitMenu>();
         submitMenu.SetHeaderText(header);
@@ -68,6 +73,7 @@ public class UIManager : MonoBehaviour
     public static Palette Palette => instance.palette;
 
     public void OpenCreateChipMenu() => OpenMenu(MenuType.CreateChipMenu);
+
     public void OpenMenu(MenuType menuType)
     {
         UIMenu newMenu = Menus[menuType];
@@ -83,6 +89,7 @@ public class UIManager : MonoBehaviour
 
         SetActiveInteraction(false);
     }
+
     public void CloseMenu()
     {
         if (OpenedMenu)
@@ -90,6 +97,7 @@ public class UIManager : MonoBehaviour
             OpenedMenu.Close();
             SetCurrentMenuState(null, MenuType.None);
         }
+
         outsideMenuArea.SetActive(false);
         SetActiveInteraction(true);
     }
@@ -105,7 +113,6 @@ public class UIManager : MonoBehaviour
         createButton.SetActive(newMode == ChipEditorMode.Create);
         updateButton.SetActive(newMode == ChipEditorMode.Update);
         ChipName.text = newMode == ChipEditorMode.Update && s != null ? s : "";
-
     }
 
     private void SetCurrentMenuState(UIMenu newMenu, MenuType menuType)
@@ -113,14 +120,21 @@ public class UIManager : MonoBehaviour
         OpenedMenu = newMenu;
         currentMenuType = menuType;
     }
+
     void SetMenuPosition()
     {
-        if (currentMenuType == MenuType.EditChipMenu)
-            SetChipEditMenuPosition();
-        if (currentMenuType == MenuType.ClockMenu)
-            SetClockMenuPosition();
-        if (currentMenuType == MenuType.EEPROMMenu)
-            SetEEPROMMenuPosition();
+        switch (currentMenuType)
+        {
+            case MenuType.EditChipMenu:
+                SetChipEditMenuPosition();
+                break;
+            case MenuType.ClockMenu:
+                SetClockMenuPosition();
+                break;
+            case MenuType.EEPROMMenu:
+                SetEEPROMMenuPosition();
+                break;
+        }
     }
 
     void SetChipEditMenuPosition()
@@ -132,9 +146,11 @@ public class UIManager : MonoBehaviour
             if (buttonText != null)
             {
                 editChipMenu.EditChipInit(buttonText.buttonText.text);
-                OpenedMenu.transform.position = new Vector3(obj.transform.position.x, OpenedMenu.transform.position.y, OpenedMenu.transform.position.z);
+                OpenedMenu.transform.position = new Vector3(obj.transform.position.x, OpenedMenu.transform.position.y,
+                    OpenedMenu.transform.position.z);
                 RectTransform rect = OpenedMenu.GetComponent<RectTransform>();
-                rect.anchoredPosition = new Vector2(Mathf.Clamp(rect.anchoredPosition.x, -800, 800), rect.anchoredPosition.y);
+                rect.anchoredPosition =
+                    new Vector2(Mathf.Clamp(rect.anchoredPosition.x, -800, 800), rect.anchoredPosition.y);
                 break;
             }
         }
@@ -146,7 +162,8 @@ public class UIManager : MonoBehaviour
         if (Clock != null)
         {
             ClockMenu.SetClockToEdit(Clock);
-            OpenedMenu.transform.position = new Vector3(Clock.transform.position.x, Clock.transform.position.y - 2, OpenedMenu.transform.position.z);
+            OpenedMenu.transform.position = new Vector3(Clock.transform.position.x, Clock.transform.position.y - 2,
+                OpenedMenu.transform.position.z);
         }
     }
 
@@ -156,7 +173,8 @@ public class UIManager : MonoBehaviour
         if (EEPROM != null)
         {
             EEPROMMenu.SetEEPROMToEdit(EEPROM);
-            OpenedMenu.transform.position = new Vector3(EEPROM.transform.position.x, EEPROM.transform.position.y - 2, OpenedMenu.transform.position.z);
+            OpenedMenu.transform.position = new Vector3(EEPROM.transform.position.x, EEPROM.transform.position.y - 2,
+                OpenedMenu.transform.position.z);
         }
     }
 
@@ -165,5 +183,10 @@ public class UIManager : MonoBehaviour
     {
         if (OpenedMenu != null && OpenedMenu.onClickBG != null)
             OpenedMenu.onClickBG.Invoke();
+    }
+
+    public void RegisterFinalizer(MenuType menuType, Action action)
+    {
+        Menus[menuType].RegisterFinalizer(action);
     }
 }

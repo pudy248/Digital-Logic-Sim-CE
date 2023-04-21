@@ -34,10 +34,9 @@ public class Pin : MonoBehaviour
 
     // Appearance
     Color defaultCol = Color.black;
-    Color interactCol;
-    Color onCol;
-    Color onColBus;
     Material material;
+    private PinPalette PinPalette;
+
 
     bool simActive;
 
@@ -72,15 +71,13 @@ public class Pin : MonoBehaviour
     void Start()
     {
         simActive = Simulation.instance.active;
-        interactCol = UIManager.Palette.selectedColor;
-        onCol = UIManager.Palette.onCol;
-        onColBus = UIManager.Palette.busColor;
+        PinPalette = UIManager.Palette.pinPalette;
         SetScale();
     }
 
-    public void SetScale() { transform.localScale = Vector3.one * radius * 2; }
+    public void SetScale() { transform.localScale = Vector3.one * (radius * 2); }
 
-    public void tellPinSimIsOff()
+    public void TellPinSimIsOff()
     {
         simActive = false;
         UpdateColor();
@@ -99,11 +96,11 @@ public class Pin : MonoBehaviour
             Color newColor = new Color();
             if (interact)
             {
-                newColor = interactCol;
+                newColor = PinPalette.selectedColor;;
             }
             else if (simActive && currentState > 0)
             {
-                newColor = wireType == WireType.Simple ? onCol : onColBus;
+                newColor = wireType == WireType.Simple ? PinPalette.onCol : PinPalette.busColor;
             }
             else
             {

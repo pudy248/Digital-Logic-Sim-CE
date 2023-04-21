@@ -30,17 +30,14 @@ public class CreateMenu : MonoBehaviour
 
     void Update()
     {
-        if (UIManager.instance.Menus[MenuType.CreateChipMenu].isActive)
-        {
-            // Force name input field to remain focused
-            if (!chipNameField.isFocused)
-            {
-                chipNameField.Select();
-                // Put caret at end of text (instead of selecting the text, which is
-                // annoying in this case)
-                chipNameField.caretPosition = chipNameField.text.Length;
-            }
-        }
+        if (!UIManager.instance.Menus[MenuType.CreateChipMenu].isActive) return;
+        // Force name input field to remain focused
+        if (chipNameField.isFocused) return;
+        
+        chipNameField.Select();
+        // Put caret at end of text (instead of selecting the text, which is
+        // annoying in this case)
+        chipNameField.caretPosition = chipNameField.text.Length;
     }
 
     public void SelectFolder()

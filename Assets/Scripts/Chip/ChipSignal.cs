@@ -1,17 +1,21 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Interaction.Display;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 // Base class for input and output signals
+[RequireComponent(typeof(SignalPinDisplay))]
 public class ChipSignal : Chip
 {
-
+    private SignalPinDisplay Display;
     public uint currentState;
 
-    public Palette palette;
-    public MeshRenderer indicatorRenderer;
-    public MeshRenderer pinRenderer;
-    public MeshRenderer wireRenderer;
+    protected override void Awake()
+    {
+        Display = GetComponent<SignalPinDisplay>();
+    }
+
     public TMPro.TextMeshProUGUI busReadout;
 
     public bool displayGroupDecimalValue { get; set; } = false;
@@ -19,37 +23,27 @@ public class ChipSignal : Chip
     public Pin.WireType wireType = Pin.WireType.Simple;
     public int GroupID { get; set; } = -1;
 
-    [HideInInspector]
-    public string signalName;
+    [HideInInspector] public string signalName;
+
     protected bool interactable = true;
 
     public virtual void SetInteractable(bool interactable)
     {
         this.interactable = interactable;
-
-        if (!interactable)
-        {
-            indicatorRenderer.material.color = palette.nonInteractableCol;
-            pinRenderer.material.color = palette.nonInteractableCol;
-            wireRenderer.material.color = palette.nonInteractableCol;
-        }
+        Display.DrawSignals(interactable);
     }
 
     public void SetDisplayState(uint state)
     {
-        if (indicatorRenderer && interactable)
-        {
-            indicatorRenderer.material.color = wireType == Pin.WireType.Simple ? 
-                (state == 1 ? palette.onCol : palette.offCol) :
-                (state > 0 ? palette.busColor : palette.offCol);
-            if (state == 0 || wireType == Pin.WireType.Simple) busReadout.gameObject.SetActive(false);
-            else busReadout.gameObject.SetActive(true);
-            busReadout.text = state.ToString();
-        }
+        if (!interactable) return;
+
+        Display.DrawSignals(interactable, wireType, state);
+        busReadout.gameObject.SetActive(state != 0 && wireType != Pin.WireType.Simple);
+        busReadout.text = state.ToString();
     }
 
-    public static bool InSameGroup(ChipSignal signalA, ChipSignal signalB) => (signalA.GroupID == signalB.GroupID) && (signalA.GroupID != -1);
-
+    public static bool InSameGroup(ChipSignal signalA, ChipSignal signalB) =>
+        (signalA.GroupID == signalB.GroupID) && (signalA.GroupID != -1);
 
 
     public virtual void UpdateSignalName(string newName) => signalName = newName;

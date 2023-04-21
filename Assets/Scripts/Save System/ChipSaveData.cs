@@ -18,11 +18,10 @@ public class ChipSaveData
     {
         List<Chip> componentChipList = new List<Chip>();
 
-        var sortedInputs = chipEditor.inputsEditor.signals;
-        sortedInputs.Sort(
-            (a, b) => b.transform.position.y.CompareTo(a.transform.position.y));
-        var sortedOutputs = chipEditor.outputsEditor.signals; sortedOutputs.Sort(
-            (a, b) => b.transform.position.y.CompareTo(a.transform.position.y));
+        var sortedInputs = chipEditor.inputsEditor.GetAllSignals();
+        var sortedOutputs = chipEditor.outputsEditor.GetAllSignals();
+        SortSignalsByYPosition(sortedInputs);
+        SortSignalsByYPosition(sortedOutputs);
 
         componentChipList.AddRange(sortedInputs);
         componentChipList.AddRange(sortedOutputs);
@@ -32,6 +31,11 @@ public class ChipSaveData
 
         wires = chipEditor.pinAndWireInteraction.allWires.ToArray();
         Data = chipEditor.Data;
+    }
+    
+    private void SortSignalsByYPosition(List<ChipSignal> signals)
+    {
+        signals.Sort((a, b) => b.transform.position.y.CompareTo(a.transform.position.y));
     }
 
     public int ComponentChipIndex(Chip componentChip)

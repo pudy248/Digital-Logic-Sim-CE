@@ -4,8 +4,13 @@ using UnityEngine;
 
 public class ChipPackage : MonoBehaviour
 {
-
-    public enum ChipType { Combapibility, Gate, Miscellaneous, Custom };
+    public enum ChipType
+    {
+        Combapibility,
+        Gate,
+        Miscellaneous,
+        Custom
+    };
 
     public ChipType chipType;
     public TMPro.TextMeshPro nameText;
@@ -25,8 +30,9 @@ public class ChipPackage : MonoBehaviour
             SetSizeAndSpacing(GetComponent<Chip>());
             SetColour(builtinChip.packageColour);
         }
+
         nameText.fontSize = ScalingManager.packageFontSize;
-    }   
+    }
 
     public void PackageCustomChip(ChipEditor chipEditor)
     {
@@ -41,15 +47,23 @@ public class ChipPackage : MonoBehaviour
         chip.chipName = chipName;
         chip.FolderIndex = chipEditor.Data.FolderIndex;
         chipType = ChipType.Custom;
-        // Set input signals
-        chip.inputSignals = new InputSignal[chipEditor.inputsEditor.signals.Count];
-        for (int i = 0; i < chip.inputSignals.Length; i++)
-            chip.inputSignals[i] = (InputSignal)chipEditor.inputsEditor.signals[i];
 
+        List<T> GetAllSignals<T>(ChipInterfaceEditor InterfaceEditor) where T : ChipSignal
+        {
+            var result = new List<T>();
+            foreach (var signal in InterfaceEditor.GetAllSignals())
+            {
+                if (signal is T ele)
+                    result.Add(ele);
+            }
+            return result;
+        }
+
+        // Set input signals
+        chip.inputSignals = GetAllSignals<InputSignal>(chipEditor.inputsEditor).ToArray();
         // Set output signals
-        chip.outputSignals = new OutputSignal[chipEditor.outputsEditor.signals.Count];
-        for (int i = 0; i < chip.outputSignals.Length; i++)
-            chip.outputSignals[i] = (OutputSignal)chipEditor.outputsEditor.signals[i];
+        chip.outputSignals = GetAllSignals<OutputSignal>(chipEditor.outputsEditor).ToArray();
+
 
         // Create pins and set set package size
         SpawnPins(chip);
@@ -75,7 +89,7 @@ public class ChipPackage : MonoBehaviour
         for (int i = 0; i < chip.inputPins.Length; i++)
         {
             Pin inputPin = Instantiate(chipPinPrefab, pinHolder.position,
-                                       Quaternion.identity, pinHolder);
+                Quaternion.identity, pinHolder);
             inputPin.pinType = Pin.PinType.ChipInput;
             inputPin.chip = chip;
             inputPin.pinName = chip.inputSignals[i].outputPins[0].pinName;
@@ -86,7 +100,7 @@ public class ChipPackage : MonoBehaviour
         for (int i = 0; i < chip.outputPins.Length; i++)
         {
             Pin outputPin = Instantiate(chipPinPrefab, pinHolder.position,
-                                        Quaternion.identity, pinHolder);
+                Quaternion.identity, pinHolder);
             outputPin.pinType = Pin.PinType.ChipOutput;
             outputPin.chip = chip;
             outputPin.pinName = chip.outputSignals[i].inputPins[0].pinName;
@@ -124,6 +138,7 @@ public class ChipPackage : MonoBehaviour
             {
                 percent = i / (numInputPinsToAutoPlace - 1f);
             }
+
             if (override_width_and_height)
             {
                 float posX = -override_width / 2f;

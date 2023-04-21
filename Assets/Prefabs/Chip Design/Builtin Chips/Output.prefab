@@ -415,6 +415,7 @@ GameObject:
   - component: {fileID: 894826051406503273}
   - component: {fileID: 245980143848404051}
   - component: {fileID: 4748678331030113159}
+  - component: {fileID: 5008326889971857537}
   m_Layer: 0
   m_Name: Output
   m_TagString: Untagged
@@ -459,10 +460,6 @@ MonoBehaviour:
   Editable: 0
   bounds: {fileID: 0}
   currentState: 0
-  palette: {fileID: 11400000, guid: bed15cc57ce1e4a35bde62f3a99891c7, type: 2}
-  indicatorRenderer: {fileID: 2766455387719651285}
-  pinRenderer: {fileID: 7264883394423657326}
-  wireRenderer: {fileID: 4557980508572362864}
   busReadout: {fileID: 5282216837160105956}
   wireType: 0
   signalName: 
@@ -498,6 +495,22 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.25
+--- !u!114 &5008326889971857537
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6546064343775056193}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee95564b73454612936d8191f9046d3f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PinPalette: {fileID: 0}
+  indicatorRenderer: {fileID: 2766455387719651285}
+  pinRenderer: {fileID: 7264883394423657326}
+  wireRenderer: {fileID: 4557980508572362864}
 --- !u!1 &7225795247245685295
 GameObject:
   m_ObjectHideFlags: 0

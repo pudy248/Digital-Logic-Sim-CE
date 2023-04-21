@@ -10,7 +10,7 @@ public class Wire : MonoBehaviour
     [HideInInspector]
     public LineRenderer lineRenderer;
     public Color editCol;
-    Palette palette;
+    PinPalette _pinPalette;
     public Color placedCol;
     public float curveSize = 0.5f;
     public int resolution = 10;
@@ -42,7 +42,7 @@ public class Wire : MonoBehaviour
 
     void Start()
     {
-        palette = UIManager.Palette;
+        _pinPalette = UIManager.Palette.pinPalette;
         lineRenderer.material = simpleMat;
         mat = lineRenderer.material;
     }
@@ -54,8 +54,8 @@ public class Wire : MonoBehaviour
     public void tellWireSimIsOff()
     {
         simActive = false;
-        startPin.tellPinSimIsOff();
-        endPin.tellPinSimIsOff();
+        startPin.TellPinSimIsOff();
+        endPin.TellPinSimIsOff();
     }
 
     public void tellWireSimIsOn()
@@ -106,7 +106,7 @@ public class Wire : MonoBehaviour
         Vector2 startPointError =
             (Vector2)startPin.transform.position - anchorPoints[0];
         Vector2 endPointError = (Vector2)endPin.transform.position -
-                                anchorPoints[anchorPoints.Count - 1];
+                                anchorPoints[^1];
 
         if (startPointError.sqrMagnitude > maxSqrError ||
             endPointError.sqrMagnitude > maxSqrError)
@@ -123,7 +123,7 @@ public class Wire : MonoBehaviour
             }
 
             anchorPoints[0] = startPin.transform.position;
-            anchorPoints[anchorPoints.Count - 1] = endPin.transform.position;
+            anchorPoints[^1] = endPin.transform.position;
             UpdateSmoothedLine();
             UpdateCollider();
         }
@@ -133,9 +133,9 @@ public class Wire : MonoBehaviour
     {
         if (wireConnected)
         {
-            Color onCol = palette.onCol;
-            Color offCol = palette.offCol;
-            Color selectedCol = palette.selectedColor;
+            Color onCol = _pinPalette.onCol;
+            Color offCol = _pinPalette.offCol;
+            Color selectedCol = _pinPalette.selectedColor;
 
             if (selected)
             {
@@ -147,14 +147,14 @@ public class Wire : MonoBehaviour
                 // High Z
                 if (ChipOutputPin.State == Bus.HighZ)
                 {
-                    onCol = palette.highZCol;
-                    offCol = palette.highZCol;
+                    onCol = _pinPalette.highZCol;
+                    offCol = _pinPalette.highZCol;
                 }
                 if (simActive)
                 {
                     if (startPin.wireType != Pin.WireType.Simple)
                     {
-                        mat.color = (ChipOutputPin.State == 0) ? offCol : palette.busColor;
+                        mat.color = (ChipOutputPin.State == 0) ? offCol : _pinPalette.busColor;
                     }
                     else
                     {
@@ -262,9 +262,7 @@ public class Wire : MonoBehaviour
 
     void SwapStartEndPoints()
     {
-        Pin temp = startPin;
-        startPin = endPin;
-        endPin = temp;
+        (startPin, endPin) = (endPin, startPin);
 
         anchorPoints.Reverse();
         drawPoints.Reverse();
@@ -276,14 +274,14 @@ public class Wire : MonoBehaviour
     // Update position of wire end point (for when initially placing the wire)
     public void UpdateWireEndPoint(Vector2 endPointWorldSpace)
     {
-        anchorPoints[anchorPoints.Count - 1] = ProcessPoint(endPointWorldSpace);
+        anchorPoints[^1] = ProcessPoint(endPointWorldSpace);
         UpdateSmoothedLine();
     }
 
     // Add anchor point (for when initially placing the wire)
     public void AddAnchorPoint(Vector2 pointWorldSpace)
     {
-        anchorPoints[anchorPoints.Count - 1] = ProcessPoint(pointWorldSpace);
+        anchorPoints[^1] = ProcessPoint(pointWorldSpace);
         anchorPoints.Add(ProcessPoint(pointWorldSpace));
     }
 
@@ -319,7 +317,7 @@ public class Wire : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.LeftShift))
         {
-            Vector2 a = anchorPoints[anchorPoints.Count - 2];
+            Vector2 a = anchorPoints[^2];
             Vector2 b = endPointWorldSpace;
             Vector2 mid = (a + b) / 2;
 
@@ -374,10 +372,10 @@ public class Wire : MonoBehaviour
                 Vector2 b = Vector2.Lerp(TargetPoint, curveEndPoint, t);
                 Vector2 p = Vector2.Lerp(a, b, t);
 
-                if ((p - drawPoints[drawPoints.Count - 1]).sqrMagnitude > 0.001f)
+                if ((p - drawPoints[^1]).sqrMagnitude > 0.001f)
                     drawPoints.Add(p);
             }
         }
-        drawPoints.Add(anchorPoints[anchorPoints.Count - 1]);
+        drawPoints.Add(anchorPoints[^1]);
     }
 }

@@ -36,19 +36,14 @@ public class InteractionManager : MonoBehaviour
 
         if (InteractableWhitFocus == null)
             SetInteragibleWhitFocus(interactable);
-        else if (interactable != InteractableWhitFocus)
+        else if (interactable != InteractableWhitFocus && InteractableWhitFocus.CanReleaseFocus())
         {
-            if (InteractableWhitFocus.CanReleaseFocus())
-            {
-                InteractableWhitFocus.HasFocus = false;
-                InteractableWhitFocus.FocusLostHandler();
-                SetInteragibleWhitFocus(interactable);
-            }
-            else
-                return false;
+            InteractableWhitFocus.HasFocus = false;
+            InteractableWhitFocus.FocusLostHandler();
+            SetInteragibleWhitFocus(interactable);
         }
 
-        return true;
+        return interactable.HasFocus;
     }
 
     private void SetInteragibleWhitFocus(Interactable interactable)

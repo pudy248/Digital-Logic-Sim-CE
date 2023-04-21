@@ -200,6 +200,7 @@ GameObject:
   - component: {fileID: 4370981688201696047}
   - component: {fileID: 9222974601663188288}
   - component: {fileID: 2072548877}
+  - component: {fileID: 8932756024906521167}
   m_Layer: 0
   m_Name: Input
   m_TagString: Untagged
@@ -221,7 +222,7 @@ Transform:
   m_Children:
   - {fileID: 46390951077938526}
   - {fileID: 2518414394606561318}
-  - {fileID: 90616068479058407}
+  - {fileID: 8004754418866402435}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -244,10 +245,6 @@ MonoBehaviour:
   Editable: 0
   bounds: {fileID: 0}
   currentState: 0
-  palette: {fileID: 11400000, guid: bed15cc57ce1e4a35bde62f3a99891c7, type: 2}
-  indicatorRenderer: {fileID: 8517369164244439844}
-  pinRenderer: {fileID: 3784613928615055263}
-  wireRenderer: {fileID: 8004754418866402433}
   busReadout: {fileID: 7254828060077245089}
   wireType: 0
   signalName: 
@@ -266,7 +263,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mode: 0
   pin: {fileID: 1644414816724565277}
-  wire: {fileID: 90616068479058407}
+  wire: {fileID: 0}
   indicator: {fileID: 46390951077938526}
 --- !u!58 &2072548877
 CircleCollider2D:
@@ -284,6 +281,22 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.25
+--- !u!114 &8932756024906521167
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 761073645497421232}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee95564b73454612936d8191f9046d3f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PinPalette: {fileID: 0}
+  indicatorRenderer: {fileID: 8517369164244439844}
+  pinRenderer: {fileID: 3784613928615055263}
+  wireRenderer: {fileID: 8004754418866402433}
 --- !u!1 &765707156936874666
 GameObject:
   m_ObjectHideFlags: 0
@@ -607,38 +620,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!1 &3589481747637294238
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 90616068479058407}
-  m_Layer: 0
-  m_Name: WireHolder
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &90616068479058407
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3589481747637294238}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.4, y: 0.05, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 8004754418866402435}
-  m_Father: {fileID: 3144883568619193823}
-  m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6417306210427012026
 GameObject:
   m_ObjectHideFlags: 0
@@ -905,12 +886,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8004754418866402436}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.515, y: 0, z: 0.01}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0.206, y: 0, z: 0.01}
+  m_LocalScale: {x: 0.4, y: 0.05, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 90616068479058407}
-  m_RootOrder: 0
+  m_Father: {fileID: 3144883568619193823}
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &8004754418866402432
 MeshFilter:

@@ -1,11 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class Constant : Chip {
 	public bool high;
 	public MeshRenderer meshRenderer;
-	public Palette palette;
+	[FormerlySerializedAs("wirePalette")] [FormerlySerializedAs("palette")] public PinPalette pinPalette;
 	
 	public void SendSignal () {
 		outputPins[0].ReceiveSignal ((high) ? 1U : 0);
@@ -13,6 +14,6 @@ public class Constant : Chip {
 	}
 
 	void Update () {
-		meshRenderer.material.color = (high) ? palette.onCol : palette.offCol;
+		meshRenderer.material.color = (high) ? pinPalette.onCol : pinPalette.offCol;
 	}
 }

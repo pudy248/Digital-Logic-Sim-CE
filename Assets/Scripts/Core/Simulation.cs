@@ -69,7 +69,7 @@ public class Simulation : MonoBehaviour
 
     private void ClearOutputSignals()
     {
-        List<ChipSignal> outputSignals = chipEditor.outputsEditor.signals;
+        List<ChipSignal> outputSignals = chipEditor.outputsEditor.GetAllSignals();
         for (int i = 0; i < outputSignals.Count; i++)
         {
             outputSignals[i].SetDisplayState(0);
@@ -79,7 +79,7 @@ public class Simulation : MonoBehaviour
 
     private void ProcessInputs()
     {
-        List<ChipSignal> inputSignals = chipEditor.inputsEditor.signals;
+        List<ChipSignal> inputSignals = chipEditor.inputsEditor.GetAllSignals();
         for (int i = 0; i < inputSignals.Count; i++)
         {
             ((InputSignal)inputSignals[i]).SendSignal();
@@ -109,7 +109,7 @@ public class Simulation : MonoBehaviour
         foreach (Wire wire in allWires)
             wire.tellWireSimIsOff();
         foreach (Pin pin in chipEditor.pinAndWireInteraction.AllVisiblePins())
-            pin.tellPinSimIsOff();
+            pin.TellPinSimIsOff();
 
         // If sim is not active all output signals are set with a temporal value of
         // 0 (group signed/unsigned displayed value) and get gray colored (turned

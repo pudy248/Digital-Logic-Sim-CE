@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ChipPropertiesMenu : MonoBehaviour
+public class PinPropertiesMenu : MonoBehaviour
 {
     [SerializeField]
     private RectTransform propertiesUI;
@@ -17,18 +17,18 @@ public class ChipPropertiesMenu : MonoBehaviour
 
     ChipInterfaceEditor CurrentInterface;
 
-    private bool Opened = false;
-
 
     private void Awake()
     {
         propertiesUI = (RectTransform)transform.GetChild(0);
+        //GetComponentInChildren<Canvas>().worldCamera = Camera.main;
     }
     // Start is called before the first frame update
     void Start()
     {
         deleteButton.onClick.AddListener(Delete);
         modeDropdown.onValueChanged.AddListener(OnValueDropDownChange);
+        UIManager.instance.RegisterFinalizer(MenuType.SignalPropertiesMenu,OnUIClose);
     }
 
     public void SetActive(bool b)
@@ -53,13 +53,10 @@ public class ChipPropertiesMenu : MonoBehaviour
         var SizeDelta = new Vector2(propertiesUI.sizeDelta.x, (isGroup) ? propertiesHeightMinMax.y : propertiesHeightMinMax.x);
         propertiesUI.sizeDelta = SizeDelta;
 
-        Opened = true;
     }
 
-    public void DisableUI()
+    public void OnUIClose()
     {
-        if (!Opened) return;
-        SetActive(false);
         SaveProperty();
         ResetC();
     }
@@ -68,7 +65,6 @@ public class ChipPropertiesMenu : MonoBehaviour
     {
         nameField.text = "";
         CurrentInterface = null;
-        Opened = false;
     }
 
     public void SetPosition(Vector3 centre, ChipInterfaceEditor.EditorType editorType)

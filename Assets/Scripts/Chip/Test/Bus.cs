@@ -1,11 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class Bus : Chip {
 
 	public MeshRenderer meshRenderer;
-	public Palette palette;
+	[FormerlySerializedAs("wirePalette")] [FormerlySerializedAs("palette")] public PinPalette pinPalette;
 	public const uint HighZ = 0x9FCE80B6U; //sufficiently random that it hopefully won't be accidentally encountered?
 
 	protected override void ProcessOutput () {
@@ -30,9 +31,9 @@ public class Bus : Chip {
 	}
 
 	void SetCol (uint signal) {
-		meshRenderer.material.color = (signal == 1) ? palette.onCol : palette.offCol;
+		meshRenderer.material.color = (signal == 1) ? pinPalette.onCol : pinPalette.offCol;
 		if (signal == HighZ) {
-			meshRenderer.material.color = palette.highZCol;
+			meshRenderer.material.color = pinPalette.highZCol;
 		}
 	}
 

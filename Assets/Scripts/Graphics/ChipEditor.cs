@@ -25,7 +25,7 @@ public class ChipEditor : MonoBehaviour
 
         pinAndWireInteraction.Init(chipInteraction, inputsEditor, outputsEditor);
         pinAndWireInteraction.onConnectionChanged += OnChipNetworkModified;
-        GetComponentInChildren<Canvas>().worldCamera = Camera.main;
+        
     }
 
     void LateUpdate()
@@ -86,10 +86,4 @@ public class ChipEditor : MonoBehaviour
         }
     }
 
-    void OnDestroy()
-    {
-        chipInteraction.visiblePins.Clear();
-        inputsEditor.visiblePins.Clear();
-        outputsEditor.visiblePins.Clear();
-    }
 }

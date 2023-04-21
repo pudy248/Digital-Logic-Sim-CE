@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Linq;
+using Interaction.Display;
 using UnityEngine;
 
 // Provides input signal (0 or 1) to a chip.
 // When designing a chip, this input signal can be manually set to 0 or 1 by the player.
+[RequireComponent(typeof(SignalPinDisplay))]
 public class InputSignal : ChipSignal
 {
 	public TMPro.TMP_InputField busInput;
@@ -13,6 +15,7 @@ public class InputSignal : ChipSignal
 		base.Start();
 		SetCol();
 	}
+
 
 	public void ToggleActive()
 	{

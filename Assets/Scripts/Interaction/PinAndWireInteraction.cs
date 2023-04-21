@@ -53,26 +53,24 @@ public class PinAndWireInteraction : Interactable
 
     public override void OrderedUpdate()
     {
-        bool mouseOverUI = InputHelper.MouseOverUIObject();
+        var mouseOverUI = InputHelper.MouseOverUIObject();
 
-        if (!mouseOverUI)
+        if (mouseOverUI) return;
+        
+        HandlePinHighlighting();
+        switch (_currentState)
         {
-            HandlePinHighlighting();
-
-            switch (_currentState)
-            {
-                case State.None:
-                    HandleWireHighlighting();
-                    //HandleWireDeletion();
-                    HandleWireCreation();
-                    break;
-                case State.PlacingWire:
-                    HandleWirePlacement();
-                    break;
-                case State.PasteWires:
-                    HandlePasteWires();
-                    break;
-            }
+            case State.None:
+                HandleWireHighlighting();
+                //HandleWireDeletion();
+                HandleWireCreation();
+                break;
+            case State.PlacingWire:
+                HandleWirePlacement();
+                break;
+            case State.PasteWires:
+                HandlePasteWires();
+                break;
         }
     }
 
@@ -106,8 +104,9 @@ public class PinAndWireInteraction : Interactable
     {
         List<Pin> pins = new List<Pin>();
         pins.AddRange(chipInteraction.visiblePins);
-        pins.AddRange(inputEditor.visiblePins);
-        pins.AddRange(outputEditor.visiblePins);
+        
+        pins.AddRange(inputEditor.GetAllPin());
+        pins.AddRange(outputEditor.GetAllPin());
         return pins;
     }
 

@@ -12,9 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d5e11a72a4bd445797f29b9f3d9a6fa, type: 3}
   m_Name: Palette
   m_EditorClassIdentifier: 
-  onCol: {r: 0.9245283, g: 0.13519046, b: 0.21901982, a: 1}
-  offCol: {r: 0.1254902, g: 0.14117648, b: 0.18039216, a: 1}
-  highZCol: {r: 0, g: 0, b: 0, a: 0}
-  busColor: {r: 0.29519063, g: 0.745283, b: 0, a: 1}
-  selectedColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
-  nonInteractableCol: {r: 0.24528301, g: 0.24528301, b: 0.24528301, a: 1}
+  pinPalette: {fileID: 11400000, guid: 393703e3429969d49b44cb0089ce7466, type: 2}
+  PinInteractionPalette: {fileID: 11400000, guid: a19c5975e33af2047a5e9e929dfc3d5b,
+    type: 2}
