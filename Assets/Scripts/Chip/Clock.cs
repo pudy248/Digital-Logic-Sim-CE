@@ -47,6 +47,6 @@ public class Clock : BuiltinChip
     private void OnMouseOver()
     {
         if (Input.GetMouseButtonDown(1))
-            UIManager.instance.OpenMenu(MenuType.ClockMenu);
+            MenuManager.instance.OpenMenu(MenuType.ClockMenu);
     }
 }

@@ -6,7 +6,7 @@ using UnityEngine.Serialization;
 public class Bus : Chip {
 
 	public MeshRenderer meshRenderer;
-	[FormerlySerializedAs("wirePalette")] [FormerlySerializedAs("palette")] public PinPalette pinPalette;
+	[FormerlySerializedAs("pinPalette")] [FormerlySerializedAs("wirePalette")] [FormerlySerializedAs("palette")] public SignalPalette signalPalette;
 	public const uint HighZ = 0x9FCE80B6U; //sufficiently random that it hopefully won't be accidentally encountered?
 
 	protected override void ProcessOutput () {
@@ -31,9 +31,9 @@ public class Bus : Chip {
 	}
 
 	void SetCol (uint signal) {
-		meshRenderer.material.color = (signal == 1) ? pinPalette.onCol : pinPalette.offCol;
+		meshRenderer.material.color = (signal == 1) ? signalPalette.onCol : signalPalette.offCol;
 		if (signal == HighZ) {
-			meshRenderer.material.color = pinPalette.highZCol;
+			meshRenderer.material.color = signalPalette.highZCol;
 		}
 	}
 

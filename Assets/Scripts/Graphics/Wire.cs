@@ -10,7 +10,7 @@ public class Wire : MonoBehaviour
     [HideInInspector]
     public LineRenderer lineRenderer;
     public Color editCol;
-    PinPalette _pinPalette;
+    SignalPalette _signalPalette;
     public Color placedCol;
     public float curveSize = 0.5f;
     public int resolution = 10;
@@ -42,7 +42,7 @@ public class Wire : MonoBehaviour
 
     void Start()
     {
-        _pinPalette = UIManager.Palette.pinPalette;
+        _signalPalette = UIThemeManager.Palette.signalPalette;
         lineRenderer.material = simpleMat;
         mat = lineRenderer.material;
     }
@@ -133,9 +133,9 @@ public class Wire : MonoBehaviour
     {
         if (wireConnected)
         {
-            Color onCol = _pinPalette.onCol;
-            Color offCol = _pinPalette.offCol;
-            Color selectedCol = _pinPalette.selectedColor;
+            Color onCol = _signalPalette.onCol;
+            Color offCol = _signalPalette.offCol;
+            Color selectedCol = _signalPalette.selectedColor;
 
             if (selected)
             {
@@ -147,14 +147,14 @@ public class Wire : MonoBehaviour
                 // High Z
                 if (ChipOutputPin.State == Bus.HighZ)
                 {
-                    onCol = _pinPalette.highZCol;
-                    offCol = _pinPalette.highZCol;
+                    onCol = _signalPalette.highZCol;
+                    offCol = _signalPalette.highZCol;
                 }
                 if (simActive)
                 {
                     if (startPin.wireType != Pin.WireType.Simple)
                     {
-                        mat.color = (ChipOutputPin.State == 0) ? offCol : _pinPalette.busColor;
+                        mat.color = (ChipOutputPin.State == 0) ? offCol : _signalPalette.busColor;
                     }
                     else
                     {

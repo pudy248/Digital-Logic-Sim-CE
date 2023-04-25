@@ -208,7 +208,7 @@ public class DLSLogger : MonoBehaviour
         UpdateOpenLogsButton();
         if (showError)
         {
-            UIManager.instance.OpenMenu(MenuType.LoggingMenu);
+            MenuManager.instance.OpenMenu(MenuType.LoggingMenu);
         }
     }
 }

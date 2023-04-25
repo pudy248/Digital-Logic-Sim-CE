@@ -5,6 +5,6 @@ using UnityEngine.Serialization;
 [CreateAssetMenu(menuName = "Palette")]
 public class Palette : ScriptableObject
 {
-  public PinPalette pinPalette;
+  [FormerlySerializedAs("pinPalette")] public SignalPalette signalPalette;
   public PinInteractionPalette PinInteractionPalette;
 }

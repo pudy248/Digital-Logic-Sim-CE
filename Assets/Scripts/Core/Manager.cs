@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public enum ChipEditorMode { Create, Update }
 ;
@@ -18,7 +19,7 @@ public class Manager : MonoBehaviour
     public Wire wirePrefab;
     public Chip[] builtinChips;
     public List<Chip> SpawnableCustomChips;
-    public UIManager UIManager;
+    [FormerlySerializedAs("UIManager")] public MenuManager menuManager;
 
     ChipEditor activeChipEditor;
     int currentChipCreationIndex;
@@ -111,7 +112,7 @@ public class Manager : MonoBehaviour
         ChipSaveData chipSaveData = ChipLoader.GetChipSaveData(chip, wirePrefab, activeChipEditor);
         ClearEditor();
         chipEditorMode = ChipEditorMode.Update;
-        UIManager.SetEditorMode(chipEditorMode,chipSaveData.Data.name);
+        menuManager.SetEditorMode(chipEditorMode,chipSaveData.Data.name);
         activeChipEditor.LoadFromSaveData(chipSaveData);
     }
 
@@ -205,7 +206,7 @@ public class Manager : MonoBehaviour
     public void ResetEditor()
     {
         chipEditorMode = ChipEditorMode.Create;
-        UIManager.SetEditorMode(chipEditorMode);
+        menuManager.SetEditorMode(chipEditorMode);
         ClearEditor();
     }
 
@@ -214,7 +215,7 @@ public class Manager : MonoBehaviour
         if (activeChipEditor)
         {
             Destroy(activeChipEditor.gameObject);
-            UIManager.SetEditorMode(chipEditorMode,UIManager.ChipName.text);
+            menuManager.SetEditorMode(chipEditorMode,menuManager.ChipName.text);
         }
         activeChipEditor =
             Instantiate(chipEditorPrefab, Vector3.zero, Quaternion.identity);

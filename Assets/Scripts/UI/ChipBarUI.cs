@@ -195,7 +195,7 @@ public class ChipBarUI : MonoBehaviour
     {
         if (FolderDropdown.value == FolderDropdown.options.Count - 1)
         {
-            UIManager.instance.OpenMenu(MenuType.NewFolderMenu);
+            MenuManager.instance.OpenMenu(MenuType.NewFolderMenu);
             FolderDropdown.value = chipButtonHolders[CurrentFolderIndex].Value; // TODO set Last Used Folder
             return;
         }

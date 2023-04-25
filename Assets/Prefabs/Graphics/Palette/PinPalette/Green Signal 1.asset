@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 580662b803ee418a89d51a800ef75c55, type: 3}
+  m_Name: Green Signal 1
+  m_EditorClassIdentifier: 
+  onCol: {r: 0.027450982, g: 0.14901961, b: 0.07058824, a: 0}
+  offCol: {r: 0.121568635, g: 0.6901961, b: 0.227451, a: 0}
+  highZCol: {r: 0, g: 0, b: 0, a: 0}
+  busColor: {r: 0, g: 0, b: 0, a: 0}
+  selectedColor: {r: 0.19607845, g: 0.19607845, b: 0.19607845, a: 0}
+  nonInteractableCol: {r: 0, g: 0, b: 0, a: 0}

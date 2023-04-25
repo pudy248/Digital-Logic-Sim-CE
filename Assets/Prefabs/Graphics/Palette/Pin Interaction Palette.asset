@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3bfda35d4b7f49ccb8821581c96be7bc, type: 3}
+  m_Name: Pin Interaction Palette
+  m_EditorClassIdentifier: 
+  handleCol: {r: 0.20000002, g: 0.20000002, b: 0.20000002, a: 0}
+  highlightedHandleCol: {r: 0.49411768, g: 0.49411768, b: 0.49411768, a: 0}
+  selectedHandleCol: {r: 0.20000002, g: 0.3254902, b: 0.42352945, a: 0}
+  selectedAndFocusedHandleCol: {r: 0.8000001, g: 0.32156864, b: 0.29803923, a: 0}

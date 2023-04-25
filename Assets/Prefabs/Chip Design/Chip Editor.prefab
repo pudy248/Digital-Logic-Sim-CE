@@ -458,20 +458,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75d9bedf3df7e422eb308f6d36a2c0e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  editorType: 0
+  SignalInteractablePref: {fileID: 0}
+  editorInterfaceType: 0
   chipContainer: {fileID: 4750937599942273985}
-  signalPrefab: {fileID: 4370981688201696047, guid: fecc938b0c660450ba39ad175f13ffc0,
-    type: 3}
-  PropertiesMenu: {fileID: 0}
   signalHolder: {fileID: 4116912237179286911}
   barGraphic: {fileID: 5233960783680084672}
   otherEditor: {fileID: 4750937600310344738}
-  handleCol: {r: 0.22745098, g: 0.22745098, b: 0.22745098, a: 0}
-  highlightedHandleCol: {r: 0.496, g: 0.496, b: 0.496, a: 0}
-  selectedHandleCol: {r: 0.1982467, g: 0.3265027, b: 0.4245283, a: 1}
-  selectedAndFocusedHandleCol: {r: 0.8000001, g: 0.32156864, b: 0.29803923, a: 0}
   showPreviewSignal: 1
-  visiblePins: []
 --- !u!61 &4750937598926047526
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -798,20 +791,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75d9bedf3df7e422eb308f6d36a2c0e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  editorType: 1
+  SignalInteractablePref: {fileID: 0}
+  editorInterfaceType: 1
   chipContainer: {fileID: 4750937599942273985}
-  signalPrefab: {fileID: 894826051406503273, guid: 808e12d27921848a59bac447b93aec0f,
-    type: 3}
-  PropertiesMenu: {fileID: 0}
   signalHolder: {fileID: 4830954755177322514}
   barGraphic: {fileID: 4683701295137199096}
   otherEditor: {fileID: 4750937598926047522}
-  handleCol: {r: 0.22745098, g: 0.22745098, b: 0.22745098, a: 0}
-  highlightedHandleCol: {r: 0.496, g: 0.496, b: 0.496, a: 0}
-  selectedHandleCol: {r: 0.1982467, g: 0.3265027, b: 0.4245283, a: 1}
-  selectedAndFocusedHandleCol: {r: 0.8000001, g: 0.32156864, b: 0.29803923, a: 0}
   showPreviewSignal: 1
-  visiblePins: []
 --- !u!114 &2647783974511930239
 MonoBehaviour:
   m_ObjectHideFlags: 0

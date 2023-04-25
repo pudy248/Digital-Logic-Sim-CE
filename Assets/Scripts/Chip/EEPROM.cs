@@ -82,7 +82,7 @@ public class EEPROM : BuiltinChip
 	private void OnMouseOver()
 	{
 		if (Input.GetMouseButtonDown(1))
-			UIManager.instance.OpenMenu(MenuType.EEPROMMenu);
+			MenuManager.instance.OpenMenu(MenuType.EEPROMMenu);
 	}
 
 	public void OpenAndFlashBinary()

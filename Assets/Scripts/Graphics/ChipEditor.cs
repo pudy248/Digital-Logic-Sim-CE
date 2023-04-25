@@ -30,8 +30,6 @@ public class ChipEditor : MonoBehaviour
 
     void LateUpdate()
     {
-        inputsEditor.OrderedUpdate();
-        outputsEditor.OrderedUpdate();
         pinAndWireInteraction.OrderedUpdate();
         chipInteraction.OrderedUpdate();
     }

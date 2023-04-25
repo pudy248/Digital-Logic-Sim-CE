@@ -35,7 +35,7 @@ public class Pin : MonoBehaviour
     // Appearance
     Color defaultCol = Color.black;
     Material material;
-    private PinPalette PinPalette;
+    private SignalPalette _signalPalette;
 
 
     bool simActive;
@@ -63,7 +63,7 @@ public class Pin : MonoBehaviour
 
     void Awake()
     {
-        material = GetComponent<MeshRenderer>().material;
+        material = GetComponentInChildren<MeshRenderer>().material;
         material.color = defaultCol;
         interact = false;
     }
@@ -71,7 +71,7 @@ public class Pin : MonoBehaviour
     void Start()
     {
         simActive = Simulation.instance.active;
-        PinPalette = UIManager.Palette.pinPalette;
+        _signalPalette = UIThemeManager.Palette.signalPalette;
         SetScale();
     }
 
@@ -96,11 +96,11 @@ public class Pin : MonoBehaviour
             Color newColor = new Color();
             if (interact)
             {
-                newColor = PinPalette.selectedColor;;
+                newColor = _signalPalette.selectedColor;;
             }
             else if (simActive && currentState > 0)
             {
-                newColor = wireType == WireType.Simple ? PinPalette.onCol : PinPalette.busColor;
+                newColor = wireType == WireType.Simple ? _signalPalette.onCol : _signalPalette.busColor;
             }
             else
             {
