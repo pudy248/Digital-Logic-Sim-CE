@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Simulation : MonoBehaviour
 {
+    public event Action<bool> OnSimulationTogle; 
     public static Simulation instance;
 
     public static int simulationFrame { get; private set; }
@@ -21,6 +23,7 @@ public class Simulation : MonoBehaviour
         // Method called by the "Run/Stop" button that toogles simulation
         // active/inactive
         active = !active;
+        OnSimulationTogle?.Invoke(active);
 
         simulationFrame++;
         if (active)
@@ -72,7 +75,7 @@ public class Simulation : MonoBehaviour
         List<ChipSignal> outputSignals = chipEditor.outputsEditor.GetAllSignals();
         for (int i = 0; i < outputSignals.Count; i++)
         {
-            outputSignals[i].SetDisplayState(0);
+            outputSignals[i].NotifyStateChange();
             outputSignals[i].currentState = 0;
         }
     }
@@ -80,10 +83,11 @@ public class Simulation : MonoBehaviour
     private void ProcessInputs()
     {
         List<ChipSignal> inputSignals = chipEditor.inputsEditor.GetAllSignals();
-        for (int i = 0; i < inputSignals.Count; i++)
+        foreach (var inputSignal in inputSignals)
         {
-            ((InputSignal)inputSignals[i]).SendSignal();
+            ((InputSignal)inputSignal).SendSignal();
         }
+        
         foreach (Chip chip in chipEditor.chipInteraction.allChips)
         {
             if (chip is CustomChip custom)
@@ -102,34 +106,12 @@ public class Simulation : MonoBehaviour
     void StopSimulation()
     {
         RefreshChipEditorReference();
-
-        var allWires = chipEditor.pinAndWireInteraction.allWires;
-        // Tell all wires the simulation is inactive makes them all inactive (gray
-        // colored)
-        foreach (Wire wire in allWires)
-            wire.tellWireSimIsOff();
-        foreach (Pin pin in chipEditor.pinAndWireInteraction.AllVisiblePins())
-            pin.TellPinSimIsOff();
-
-        // If sim is not active all output signals are set with a temporal value of
-        // 0 (group signed/unsigned displayed value) and get gray colored (turned
-        // off)
         ClearOutputSignals();
     }
 
     void ResumeSimulation()
     {
         StepSimulation();
-
-        foreach (Pin pin in chipEditor.pinAndWireInteraction.AllVisiblePins())
-            pin.tellPinSimIsOn();
-
-        var allWires = chipEditor.pinAndWireInteraction.allWires;
-
-        // Tell all wires the simulation is active makes them all active (dynamic
-        // colored based on the circuits logic)
-        foreach (Wire wire in allWires)
-            wire.tellWireSimIsOn();
     }
 
     private void InitChips()

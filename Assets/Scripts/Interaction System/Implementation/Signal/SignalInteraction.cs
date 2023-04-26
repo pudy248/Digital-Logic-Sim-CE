@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using DLS.Simulation;
 using Interaction.Display;
+using JetBrains.Annotations;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -12,21 +14,34 @@ namespace Interaction
 {
     public class SignalInteraction : Interactable
     {
+        //Editor 
         [SerializeField] private ChipSignal signalPrefab;
-        public bool IsPreview;
 
 
+        //Work Variable
         public List<ChipSignal> Signals { get; private set; }
         private int GroupSize;
         private int ID;
 
         float BoundsTop;
         float BoundsBottom;
-        private ChipInterfaceEditor.EditorInterfaceType EditorInterfaceType;
+
+        public ChipInterfaceEditor.EditorInterfaceType EditorInterfaceType { get; private set; }
 
 
+        //Event
         public event Action<Chip> OnDeleteChip;
-        public event Action<SignalInteraction> OnSelection;
+        public event Action<Vector3, ChipInterfaceEditor.EditorInterfaceType> OnDragig;
+        [CanBeNull] public event Action OnDeleteInteraction;
+
+
+        //Property 
+        public bool IsGroup => GroupSize > 1;
+        public string SignalName => Signals[0].signalName;
+        public bool UseTwosComplement => Signals[0].useTwosComplement;
+        public Pin.WireType WireType => Signals[0].wireType;
+
+        public Vector3 GroupCenter => (Signals[0].transform.position + Signals[^1].transform.position) / 2;
 
 
         public void SetUpCreation(int _groupSize, float _boundsBottom, float _boundsTop,
@@ -51,23 +66,28 @@ namespace Interaction
 
             OnDeleteChip += _onDeleteChip;
 
+            MenuManager.instance.signalPropertiesMenu.RegisterSignalGroup(this);
+            OnFocusLost += MenuManager.instance.CloseMenu;
+            OnFocusObtained += OpenPropertyMenu;
 
-            OpenPropertyMenu();
+            RequestFocus();
         }
 
         private void RegisterEventToAllHandle()
         {
-            foreach (var Handle in Signals.Select(x => x.GetComponentInChildren<HandleSubject>()))
+            foreach (var Handle in Signals.Select(x => x.GetComponentInChildren<HandleEvent>()))
             {
                 var HandlerDisplais = Signals.Select(x => x.GetComponentInChildren<SignalHandlerDisplay>());
                 foreach (var HandlerDisplay in HandlerDisplais)
-                    HandlerDisplay.RegisterToHandleGroup(Handle);
+                {
+                    if (HandlerDisplay != null)
+                        HandlerDisplay.RegisterToHandleGroup(Handle);
+                }
 
                 Handle.OnHandleClick += () =>
                 {
-                    OnSelection?.Invoke(this);
+                    NotifyMovement();
                     RequestFocus();
-                    OpenPropertyMenu();
                 };
 
                 Handle.OnStartDrag += (pos) =>
@@ -81,6 +101,13 @@ namespace Interaction
             }
         }
 
+        private void NotifyMovement()
+        {
+            OnDragig?.Invoke(GroupCenter, EditorInterfaceType);
+        }
+
+
+        #region Positioning
 
         private float handleStartPosy;
         private bool DragCancelled = false;
@@ -96,13 +123,11 @@ namespace Interaction
             if (DragCancelled) handleNewY = handleStartPosy;
 
             SetUpPosition(handleNewY);
-
+            NotifyMovement();
             // Cancel drag and deselect
-            if (DragCancelled) FocusLostHandler();
+            if (DragCancelled) ReleaseFocus();
         }
 
-
-        #region Positioning
 
         public void UpdateScaleAndPosition()
         {
@@ -143,18 +168,18 @@ namespace Interaction
         #endregion
 
 
-        public void SetPinInteractable()
+        private void SetPinInteractable()
         {
             foreach (var sig in Signals)
                 sig.SetInteractable(true);
         }
 
 
-        public void SetUpPosition(float handleNewY)
+        private void SetUpPosition(float handleNewY)
         {
-            for (int i = 0; i < Signals.Count; i++)
+            for (var i = 0; i < Signals.Count; i++)
             {
-                float y = AdjustYForGroupMember(handleNewY, i);
+                var y = AdjustYForGroupMember(handleNewY, i);
                 Signals[i].transform.SetYPos(y);
             }
         }
@@ -180,30 +205,17 @@ namespace Interaction
                 if (pin == null) return;
                 pin.wireType = (Pin.WireType)mode;
                 Manager.ActiveChipEditor.pinAndWireInteraction.DestroyConnectedWires(pin);
-                signal.SetState(0);
+                signal.SetState(PinState.LOW);
             }
         }
 
 
-        Vector3 GetGroupCenter()
-        {
-            return (Signals[0].transform.position + Signals[^1].transform.position) / 2;
-        }
-
+        #region Property
 
         void OpenPropertyMenu()
         {
-            SetUpProperty();
-            MenuManager.instance.signalPropertiesMenu.SetPosition(GetGroupCenter(), EditorInterfaceType);
-        }
-
-        void SetUpProperty()
-        {
-            MenuManager.instance.signalPropertiesMenu.EnableUI(this,
-                Signals[0].signalName,
-                GroupSize > 1,
-                Signals[0].useTwosComplement,
-                (int)Signals[0].wireType);
+            MenuManager.instance.OpenMenu(MenuType.SignalPropertiesMenu);
+            MenuManager.instance.signalPropertiesMenu.SetUpUI(this);
         }
 
 
@@ -216,6 +228,8 @@ namespace Interaction
                 Signal.useTwosComplement = twosComplementToggle;
             }
         }
+
+        #endregion
 
 
         public bool Contains(ChipSignal chip)
@@ -236,6 +250,7 @@ namespace Interaction
                 Destroy(selectedSignal.gameObject);
             }
 
+            OnDeleteInteraction?.Invoke();
             Destroy(gameObject);
         }
     }

@@ -14,20 +14,34 @@ public abstract class Interactable : MonoBehaviour
 {
     public event Action OnFocusObtained;
     public event Action OnFocusLost;
-    
+
     // Does this system currently have focus?
-    public bool HasFocus { get; set; } = false;
-    
+    public bool HasFocus { get; private set; } = false;
+
     public abstract void OrderedUpdate();
     public abstract void DeleteCommand();
-    
-    
-    public void FocusLostHandler() {OnFocusLost?.Invoke(); }
-    public void FocusObtainedHandler() { OnFocusObtained?.Invoke();         }
-    public virtual bool CanReleaseFocus() => true;
 
     
-    protected bool RequestFocus() => InteractionManager.Instance.RequestFocus(this);
-    protected void ReleaseFocusNotHandled() => InteractionManager.Instance.ReleaseFocus(this);
-    protected void ReleaseFocus() { InteractionManager.Instance.ReleaseFocus(this);FocusLostHandler(); }
+    public virtual bool CanReleaseFocus() => true;
+
+
+    public bool RequestFocus()
+    {
+        HasFocus = InteractionManager.Instance.RequestFocus(this);
+        if (HasFocus)
+            OnFocusObtained?.Invoke();
+        return HasFocus;
+    }
+
+    public void ReleaseFocusNotHandled()
+    {
+        InteractionManager.Instance.ReleaseFocus(this);
+        HasFocus = false;
+    }
+
+    public void ReleaseFocus()
+    {
+        ReleaseFocusNotHandled();
+        OnFocusLost?.Invoke();
+    }
 }

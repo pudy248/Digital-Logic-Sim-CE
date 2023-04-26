@@ -104,10 +104,15 @@ public class CopyPaste : MonoBehaviour
             info.wire = wire;
 
             List<Vector2> anchorPoints = new List<Vector2>();
-            for (int i = 0; i < wire.lineRenderer.positionCount; i++)
+            // for (int i = 0; i < wire.lineRenderer.positionCount; i++)
+            // {
+            //     anchorPoints.Add(wire.lineRenderer.GetPosition(i));
+            // }
+            foreach (var t in wire.anchorPoints)
             {
-                anchorPoints.Add(wire.lineRenderer.GetPosition(i));
+                anchorPoints.Add(t);
             }
+            
             info.anchorPoints = anchorPoints.ToArray();
 
             info.endChipIndex = chips.IndexOf(wire.endPin.chip);

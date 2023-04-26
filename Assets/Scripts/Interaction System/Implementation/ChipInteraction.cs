@@ -122,7 +122,7 @@ public class ChipInteraction : Interactable
         visiblePins.AddRange(chip.outputPins);
         foreach (Pin pin in chip.outputPins)
         {
-            pin.UpdateColor();
+            pin.NotifyStateChange();
         }
     }
 
@@ -182,42 +182,40 @@ public class ChipInteraction : Interactable
 
         // Left mouse down. Handle selecting a chip, or starting to draw a selection
         // box.
-        if (Input.GetMouseButtonDown(0) && !InputHelper.MouseOverUIObject() && !InputHelper.CompereTagObjectUnderMouse2D(ProjectTags.InterfaceMask,ProjectLayer.Default)  )
-        {
-            if (RequestFocus())
-            {
-                selectionBoxStartPos = mousePos;
-                GameObject objectUnderMouse =
-                    InputHelper.GetObjectUnderMouse2D(chipMask);
+        if (!Input.GetMouseButtonDown(0) || InputHelper.MouseOverUIObject() ||
+            InputHelper.CompereTagObjectUnderMouse2D(ProjectTags.InterfaceMask, ProjectLayer.Default)) return;
 
-                // If clicked on nothing, clear selected items and start drawing
-                // selection box
-                if (objectUnderMouse == null)
-                {
-                    currentState = State.SelectingChips;
-                    selectedChips.Clear();
-                }
-                // If clicked on a chip, select that chip and allow it to be moved
-                else
-                {
-                    currentState = State.MovingOldChips;
-                    Chip chipUnderMouse = objectUnderMouse.GetComponent<Chip>();
-                    // If object is already selected, then selection of any other chips
-                    // should be maintained so they can be moved as a group. But if object
-                    // is not already selected, then any currently selected chips should
-                    // be deselected.
-                    if (!selectedChips.Contains(chipUnderMouse))
-                    {
-                        selectedChips.Clear();
-                        selectedChips.Add(chipUnderMouse);
-                    }
-                    // Record starting positions of all selected chips for movement
-                    selectedChipsOriginalPos = new Vector3[selectedChips.Count];
-                    for (int i = 0; i < selectedChips.Count; i++)
-                    {
-                        selectedChipsOriginalPos[i] = selectedChips[i].transform.position;
-                    }
-                }
+        if (!RequestFocus()) return;
+        
+        selectionBoxStartPos = mousePos;
+        var objectUnderMouse = InputHelper.GetObjectUnderMouse2D(chipMask);
+
+        // If clicked on nothing, clear selected items and start drawing
+        // selection box
+        if (objectUnderMouse == null)
+        {
+            currentState = State.SelectingChips;
+            selectedChips.Clear();
+        }
+        // If clicked on a chip, select that chip and allow it to be moved
+        else
+        {
+            currentState = State.MovingOldChips;
+            Chip chipUnderMouse = objectUnderMouse.GetComponent<Chip>();
+            // If object is already selected, then selection of any other chips
+            // should be maintained so they can be moved as a group. But if object
+            // is not already selected, then any currently selected chips should
+            // be deselected.
+            if (!selectedChips.Contains(chipUnderMouse))
+            {
+                selectedChips.Clear();
+                selectedChips.Add(chipUnderMouse);
+            }
+            // Record starting positions of all selected chips for movement
+            selectedChipsOriginalPos = new Vector3[selectedChips.Count];
+            for (var i = 0; i < selectedChips.Count; i++)
+            {
+                selectedChipsOriginalPos[i] = selectedChips[i].transform.position;
             }
         }
     }
@@ -417,7 +415,7 @@ public class ChipInteraction : Interactable
             visiblePins.AddRange(chip.outputPins);
             foreach (Pin pin in chip.outputPins)
             {
-                pin.UpdateColor();
+                pin.NotifyStateChange();
             }
         }
 

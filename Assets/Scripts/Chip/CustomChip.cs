@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using UnityEngine;
 using System.Collections.Generic;
+using DLS.Simulation;
 
 public class CustomChip : Chip
 {
@@ -12,13 +13,8 @@ public class CustomChip : Chip
 
     public int FolderIndex = 0;
 
-    [UnityEngine.HideInInspector]
+    [HideInInspector]
     public Pin[] unconnectedInputs;
-
-    protected override void Start()
-    {
-        base.Start();
-    }
 
     public void Init()
     {
@@ -41,15 +37,8 @@ public class CustomChip : Chip
         }
     }
 
-    public bool HasNoInputs
-    {
-        get { return inputPins.Length == 0; }
-    }
+    public bool HasNoInputs => inputPins.Length == 0;
 
-    public override void ReceiveInputSignal(Pin pin)
-    {
-        base.ReceiveInputSignal(pin);
-    }
 
     protected override void ProcessOutput()
     {
@@ -67,7 +56,7 @@ public class CustomChip : Chip
         // Pass processed signals on to ouput pins
         for (int i = 0; i < outputPins.Length; i++)
         {
-            uint outputState = outputSignals[i].inputPins[0].State;
+            PinState outputState = outputSignals[i].inputPins[0].State;
             outputPins[i].ReceiveSignal(outputState);
         }
     }

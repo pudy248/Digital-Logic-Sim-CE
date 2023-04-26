@@ -11,7 +11,7 @@ PrefabInstance:
         type: 3}
       propertyPath: signalPrefab
       value: 
-      objectReference: {fileID: 894826051406503273, guid: 808e12d27921848a59bac447b93aec0f,
+      objectReference: {fileID: 2846708880748095802, guid: bb9d7412ff6f0d742b8ee0711cc8b836,
         type: 3}
     - target: {fileID: 8578806971804596737, guid: b2b3e2d737aaa1145bc264617f6bab7e,
         type: 3}

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 5232190354353641492}
   - component: {fileID: 7724145159576276130}
   m_Layer: 10
-  m_Name: Pin
+  m_Name: Pin Display
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

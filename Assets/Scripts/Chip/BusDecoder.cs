@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DLS.Simulation;
 using UnityEngine.XR;
 
 namespace Assets.Scripts.Chip
@@ -19,8 +20,8 @@ namespace Assets.Scripts.Chip
 			var inputSignal = inputPins[0].State;
 			foreach(var outputPin in outputPins.Reverse())
 			{
-				outputPin.ReceiveSignal(inputSignal & 1);
-				inputSignal >>= 1;
+				outputPin.ReceiveSignal((PinState)(inputSignal.ToUint() & 1));
+				inputSignal = (PinState) (inputSignal.ToUint()>>1);
 			}
 		}
 	}

@@ -1,74 +1,86 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using DLS.Simulation;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-public class Bus : Chip {
+public class Bus : Chip
+{
+    public MeshRenderer meshRenderer;
+    public Palette signalPalette;
 
-	public MeshRenderer meshRenderer;
-	[FormerlySerializedAs("pinPalette")] [FormerlySerializedAs("wirePalette")] [FormerlySerializedAs("palette")] public SignalPalette signalPalette;
-	public const uint HighZ = 0x9FCE80B6U; //sufficiently random that it hopefully won't be accidentally encountered?
+    protected override void ProcessOutput()
+    {
+        var outputSignal = PinState.FLOATING;
+        foreach (var t in inputPins)
+        {
+            if (!t.HasParent) continue;
+            if (t.State == PinState.FLOATING) continue;
+            outputSignal = t.State;
+        }
 
-	protected override void ProcessOutput () {
-		uint outputSignal = HighZ;
-		for (int i = 0; i < inputPins.Length; i++) {
-			if (inputPins[i].HasParent) {
-				if (inputPins[i].State != HighZ)
-					if (inputPins[i].State == 1) {
-						outputSignal = 1;
-					}
-				else {
-					outputSignal = 0;
-				}
-			}
-		}
+        foreach (var t in outputPins)
+        {
+            t.ReceiveSignal(outputSignal);
+        }
 
-		for (int i = 0; i < outputPins.Length; i++) {
-			outputPins[i].ReceiveSignal (outputSignal);
-		}
+        SetCol(outputSignal);
+    }
 
-		SetCol (outputSignal);
-	}
+    void SetCol(PinState pinState)
+    {
+        var defTheme = signalPalette.GetDefaultTheme();
+        meshRenderer.material.color = defTheme.GetColour(pinState);
+    }
 
-	void SetCol (uint signal) {
-		meshRenderer.material.color = (signal == 1) ? signalPalette.onCol : signalPalette.offCol;
-		if (signal == HighZ) {
-			meshRenderer.material.color = signalPalette.highZCol;
-		}
-	}
 
-	public Pin GetBusConnectionPin (Pin wireStartPin, Vector2 connectionPos) {
-		Pin connectionPin = null;
-		// Wire wants to put data onto bus
-		if (wireStartPin != null && wireStartPin.pinType == Pin.PinType.ChipOutput) {
-			connectionPin = FindUnusedInputPin ();
-		} else {
-			// Wire wants to get data from bus
-			connectionPin = FindUnusedOutputPin ();
-		}
-		var lineCentre = (Vector2) transform.position;
-		var pos = MathUtility.ClosestPointOnLineSegment (lineCentre + Vector2.left * 100, lineCentre + Vector2.right * 100, connectionPos);
-		connectionPin.transform.position = pos;
-		return connectionPin;
-	}
+    public Pin GetBusConnectionPin(Pin wireStartPin, Vector2 connectionPos)
+    {
+        Pin connectionPin = null;
+        // Wire wants to put data onto bus
+        if (wireStartPin != null && wireStartPin.pinType == Pin.PinType.ChipOutput)
+        {
+            connectionPin = FindUnusedInputPin();
+        }
+        else
+        {
+            // Wire wants to get data from bus
+            connectionPin = FindUnusedOutputPin();
+        }
 
-	Pin FindUnusedOutputPin () {
-		for (int i = 0; i < outputPins.Length; i++) {
-			if (outputPins[i].childPins.Count == 0) {
-				return outputPins[i];
-			}
-		}
-		Debug.Log ("Ran out of pins");
-		return null;
-	}
+        var lineCentre = (Vector2)transform.position;
+        var pos = MathUtility.ClosestPointOnLineSegment(lineCentre + Vector2.left * 100,
+            lineCentre + Vector2.right * 100,
+            connectionPos);
+        connectionPin.transform.position = pos;
+        return connectionPin;
+    }
 
-	Pin FindUnusedInputPin () {
-		for (int i = 0; i < inputPins.Length; i++) {
-			if (inputPins[i].parentPin == null) {
-				return inputPins[i];
-			}
-		}
-		Debug.Log ("Ran out of pins");
-		return null;
-	}
+    Pin FindUnusedOutputPin()
+    {
+        for (int i = 0; i < outputPins.Length; i++)
+        {
+            if (outputPins[i].childPins.Count == 0)
+            {
+                return outputPins[i];
+            }
+        }
+
+        Debug.Log("Ran out of pins");
+        return null;
+    }
+
+    Pin FindUnusedInputPin()
+    {
+        for (int i = 0; i < inputPins.Length; i++)
+        {
+            if (inputPins[i].parentPin == null)
+            {
+                return inputPins[i];
+            }
+        }
+
+        Debug.Log("Ran out of pins");
+        return null;
+    }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using DLS.Simulation;
 using TMPro;
 using UnityEngine;
 
@@ -74,11 +75,11 @@ public class DecimalDisplay : MonoBehaviour
                 int decimalValue = 0;
                 for (int i = 0; i < signals.Length; i++)
                 {
-                    uint signalState = signals[signals.Length - 1 - i].currentState;
+                    var signalState = signals[signals.Length - 1 - i].currentState;
                     if (useTwosComplement && i == signals.Length - 1)
                         decimalValue |= (-((int)signalState << i));
                     else
-                        decimalValue |= (int)(signalState << i);
+                        decimalValue |= (int)(signalState.ToUint() << i);
                 }
                 text.text = decimalValue + "";
             }

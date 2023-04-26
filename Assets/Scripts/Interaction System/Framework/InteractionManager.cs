@@ -22,34 +22,33 @@ public class InteractionManager : MonoBehaviour
     }
 
     public bool HadFocus(Interactable interactable) => InteractableWhitFocus == interactable;
+
     public void ReleaseFocus(Interactable interactable)
     {
-        if (HadFocus(interactable))
-        {
-            InteractableWhitFocus.HasFocus = false;
-            InteractableWhitFocus = null;
-        }
+        if (!HadFocus(interactable)) return;
+        InteractableWhitFocus = null;
     }
 
     public bool RequestFocus(Interactable interactable)
     {
+        if (HadFocus(interactable)) return true;
         if (InteractableWhitFocus == null)
-            SetInteragibleWhitFocus(interactable);
-        else if (interactable != InteractableWhitFocus && InteractableWhitFocus.CanReleaseFocus())
         {
-            InteractableWhitFocus.HasFocus = false;
-            InteractableWhitFocus.FocusLostHandler();
             SetInteragibleWhitFocus(interactable);
+            return true;
         }
 
-        return interactable.HasFocus;
+        if (!InteractableWhitFocus.CanReleaseFocus()) return false;
+        
+        
+        InteractableWhitFocus.ReleaseFocus();
+        SetInteragibleWhitFocus(interactable);
+        return true;
+
     }
 
     private void SetInteragibleWhitFocus(Interactable interactable)
     {
         InteractableWhitFocus = interactable;
-        InteractableWhitFocus.HasFocus = true;
-        InteractableWhitFocus.FocusObtainedHandler();
-
     }
 }

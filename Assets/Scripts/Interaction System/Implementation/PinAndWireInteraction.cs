@@ -19,7 +19,7 @@ public class PinAndWireInteraction : Interactable
     State _currentState;
     Pin pinUnderMouse;
     Pin wireStartPin;
-    Wire wireToPlace;
+    Wire   wireToPlace;
     Wire highlightedWire;
     Dictionary<Pin, Wire> wiresByChipInputPin;
     public List<Wire> allWires { get; private set; }
@@ -36,7 +36,7 @@ public class PinAndWireInteraction : Interactable
         allWires = new List<Wire>();
         wiresToPaste = new List<Wire>();
         wiresByChipInputPin = new Dictionary<Pin, Wire>();
-        OnFocusLost += FocusObtainedHandler;
+        OnFocusLost += FocusLostHandler;
     }
 
 
@@ -247,31 +247,29 @@ public class PinAndWireInteraction : Interactable
 
     void HandleWireCreation()
     {
-        if (Input.GetMouseButtonDown(0))
-        {
-            // Wire can be created from a pin, or from another wire (in which case it
-            // uses that wire's start pin)
-            if ((pinUnderMouse || highlightedWire) && RequestFocus())
-            {
-                _currentState = State.PlacingWire;
-                // wirePrefab.GetComponent<Wire>().thickness =
-                // ScalingManager.wireThickness * 1.5f;
-                wireToPlace = Instantiate(wirePrefab, parent: wireHolder);
+        if (!Input.GetMouseButtonDown(0)) return;
+        // Wire can be created from a pin, or from another wire (in which case it
+        // uses that wire's start pin)
+        if ((!pinUnderMouse && !highlightedWire) || !RequestFocus()) return;
+        
+        
+        _currentState = State.PlacingWire;
+        // wirePrefab.GetComponent<Wire>().thickness =
+        // ScalingManager.wireThickness * 1.5f;
+        wireToPlace = Instantiate(wirePrefab, wireHolder);
 
-                // Creating new wire starting from pin
-                if (pinUnderMouse)
-                {
-                    wireStartPin = pinUnderMouse;
-                    wireToPlace.ConnectToFirstPin(wireStartPin);
-                }
-                // Creating new wire starting from existing wire
-                else if (highlightedWire)
-                {
-                    wireStartPin = highlightedWire.ChipOutputPin;
-                    wireToPlace.ConnectToFirstPinViaWire(wireStartPin, highlightedWire,
-                                                         InputHelper.MouseWorldPos);
-                }
-            }
+        // Creating new wire starting from pin
+        if (pinUnderMouse)
+        {
+            wireStartPin = pinUnderMouse;
+            wireToPlace.ConnectToFirstPin(wireStartPin);
+        }
+        // Creating new wire starting from existing wire
+        else if (highlightedWire)
+        {
+            wireStartPin = highlightedWire.ChipOutputPin;
+            wireToPlace.ConnectToFirstPinViaWire(wireStartPin, highlightedWire,
+                InputHelper.MouseWorldPos);
         }
     }
 
@@ -352,6 +350,7 @@ public class PinAndWireInteraction : Interactable
 
         _currentState = State.None;
     }
+    
     void ConnectionChanged() { onConnectionChanged?.Invoke(); }
 
 

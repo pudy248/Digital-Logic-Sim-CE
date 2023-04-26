@@ -23,12 +23,12 @@ namespace Interaction.Display
         {
             Interaction = GetComponentInParent<SignalInteraction>();
             HandlerRender = GetComponent<Renderer>();
-            var Lissener = GetComponentInParent<HandleSubject>();
+            var Lissener = GetComponentInParent<HandleEvent>();
             RegisterToHandleGroup(Lissener);
 
         }
 
-        public void RegisterToHandleGroup(HandleSubject Lissener)
+        public void RegisterToHandleGroup(HandleEvent Lissener)
         {
             Lissener.OnHandleEnter += () => CheckedChangeHandleColor(HandleState.Highlighted);
             Lissener.OnHandleExit += () => CheckedChangeHandleColor(HandleState.Default);

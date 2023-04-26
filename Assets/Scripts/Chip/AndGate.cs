@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using DLS.Simulation;
+using UnityEngine;
 
 public class AndGate : BuiltinChip {
 
@@ -7,7 +8,7 @@ public class AndGate : BuiltinChip {
 	}
 
 	protected override void ProcessOutput () {
-		uint outputSignal = inputPins[0].State & inputPins[1].State;
+		PinState outputSignal = inputPins[0].State & inputPins[1].State;
 		outputPins[0].ReceiveSignal (outputSignal);
 	}
 

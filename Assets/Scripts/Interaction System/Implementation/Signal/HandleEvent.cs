@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Interaction;
 using UnityEngine;
 
-public class HandleSubject : MonoBehaviour
+public class HandleEvent : MonoBehaviour
 {
     public event Action OnHandleEnter;
     public event Action OnHandleExit;
@@ -15,7 +15,7 @@ public class HandleSubject : MonoBehaviour
 
     private bool isDragging = false;
     private float clickTime = 0f;
-    private float clickThreshold = 0.2f; // imposta il tempo minimo di click qui
+    private float clickThreshold = 0.2f;
 
     private void OnMouseEnter()
     {

@@ -28,8 +28,9 @@ public class SignalPropertiesMenu : MonoBehaviour
     void Start()
     {
         deleteButton.onClick.AddListener(Delete);
+       // deleteButton.onClick.AddListener(MenuManager.instance.CloseMenu);
         modeDropdown.onValueChanged.AddListener(OnValueDropDownChange);
-        MenuManager.instance.RegisterFinalizer(MenuType.SignalPropertiesMenu,OnUIClose);
+        MenuManager.instance.RegisterFinalizer(MenuType.SignalPropertiesMenu,OnCloseUI);
     }
 
     public void SetActive(bool b)
@@ -38,36 +39,33 @@ public class SignalPropertiesMenu : MonoBehaviour
     }
 
 
-    public void EnableUI(SignalInteraction signalInteraction, string signalName, bool isGroup, bool useTwosComplement, int wireType)
+    public void SetUpUI(SignalInteraction signalInteraction)
     {
         SetActive(true);
-        nameField.text = signalName;
+        nameField.text = signalInteraction.SignalName;
         nameField.Select();
         nameField.caretPosition = nameField.text.Length;
-        twosComplementToggle.gameObject.SetActive(isGroup);
-        twosComplementToggle.isOn = useTwosComplement;
-        modeDropdown.gameObject.SetActive(!isGroup);
-        modeDropdown.SetValueWithoutNotify(wireType);
+        twosComplementToggle.gameObject.SetActive(signalInteraction.IsGroup);
+        twosComplementToggle.isOn = signalInteraction.UseTwosComplement;
+        modeDropdown.gameObject.SetActive(!signalInteraction.IsGroup);
+        modeDropdown.SetValueWithoutNotify((int)signalInteraction.WireType);
         SignalInteraction = signalInteraction;
 
-        var SizeDelta = new Vector2(propertiesUI.sizeDelta.x, (isGroup) ? propertiesHeightMinMax.y : propertiesHeightMinMax.x);
+        var SizeDelta = new Vector2(propertiesUI.sizeDelta.x, (signalInteraction.IsGroup) ?
+            propertiesHeightMinMax.y : propertiesHeightMinMax.x);
         propertiesUI.sizeDelta = SizeDelta;
 
+        SetPosition(signalInteraction.GroupCenter, signalInteraction.EditorInterfaceType);
     }
 
-    public void OnUIClose()
+    private void OnCloseUI()
     {
         SaveProperty();
-        ResetC();
-    }
-
-    private void ResetC()
-    {
-        nameField.text = "";
+        // nameField.text = "";
         SignalInteraction = null;
     }
 
-    public void SetPosition(Vector3 centre, ChipInterfaceEditor.EditorInterfaceType editorInterfaceType)
+    private void SetPosition(Vector3 centre, ChipInterfaceEditor.EditorInterfaceType editorInterfaceType)
     {
         float propertiesUIX = ScalingManager.propertiesUIX * (editorInterfaceType == ChipInterfaceEditor.EditorInterfaceType.Input ? 1 : -1);
         propertiesUI.transform.position = new Vector3(centre.x + propertiesUIX, centre.y, propertiesUI.transform.position.z);
@@ -84,9 +82,26 @@ public class SignalPropertiesMenu : MonoBehaviour
     {
         SignalInteraction.DeleteCommand();
     }
+
+    void DeleteFinalizer()
+    {
+        UnregisterSignalGroup(SignalInteraction);
+        MenuManager.instance.CloseMenu();
+    }
     void OnValueDropDownChange(int mode)
     {
         if (SignalInteraction != null)
             SignalInteraction.ChangeWireType(mode);
+    }
+
+    public void RegisterSignalGroup(SignalInteraction signalInteraction)
+    {
+        signalInteraction.OnDragig += SetPosition;
+        signalInteraction.OnDeleteInteraction += DeleteFinalizer;
+    }
+    public void UnregisterSignalGroup(SignalInteraction signalInteraction)
+    {
+        signalInteraction.OnDragig -= SetPosition;
+        signalInteraction.OnDeleteInteraction -= DeleteFinalizer;
     }
 }

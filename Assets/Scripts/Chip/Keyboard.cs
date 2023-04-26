@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using DLS.Simulation;
 
 public class Keyboard : BuiltinChip
 {
@@ -13,7 +14,7 @@ public class Keyboard : BuiltinChip
         {
             if (Input.inputString?.ToCharArray()?.Length > 0)
             {
-                chars = new List<string>();
+                chars.Clear();
                 char tmp = Input.inputString.ToCharArray()[0];
                 int temp = (int)tmp;
 
@@ -27,14 +28,14 @@ public class Keyboard : BuiltinChip
                     }
                 }
 
-                for (int i = 0; i < 8; i++)
+                for (var i = 0; i < 8; i++)
                 {
                     chars.Add(Convert.ToString(binary[i]));
                 }
 
-                for (int i = 0; i < chars.Count; i++)
+                for (var i = 0; i < chars.Count; i++)
                 {
-                    uint outputSignal = uint.Parse(chars[i]);
+                    PinState outputSignal = (PinState)uint.Parse(chars[i]);
                     outputPins[i].ReceiveSignal(outputSignal);
                 }
             }
@@ -42,9 +43,9 @@ public class Keyboard : BuiltinChip
 
         else
         {
-            for (int i = 0; i < 8; i++)
+            for (var i = 0; i < 8; i++)
             {
-                uint outputSignal = 0;
+                PinState outputSignal = 0;
                 outputPins[i].ReceiveSignal(outputSignal);
             }
         }

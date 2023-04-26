@@ -1,50 +1,49 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using DLS.Simulation;
 using Interaction.Display;
 using UnityEngine;
 using UnityEngine.Serialization;
+using static Pin;
 
 // Base class for input and output signals
-[RequireComponent(typeof(SignalPinDisplay))]
+[RequireComponent(typeof(SignalDisplay))]
 public class ChipSignal : Chip
 {
-    private SignalPinDisplay Display;
-    public uint currentState;
+    
+    
+    public event Action<WireType,PinState> OnStateChange; 
+    public event Action<bool> OnInteractableSet;
+    
+    public PinState currentState;
+    public WireType wireType = WireType.Simple;
 
-    protected override void Awake()
-    {
-        Display = GetComponent<SignalPinDisplay>();
-    }
-
-    public TMPro.TextMeshProUGUI busReadout;
-
+    protected bool interactable = true;
     public bool displayGroupDecimalValue { get; set; } = false;
     public bool useTwosComplement { get; set; } = true;
-    public Pin.WireType wireType = Pin.WireType.Simple;
-    public int GroupID { get; set; } = -1;
 
     [HideInInspector] public string signalName;
 
-    protected bool interactable = true;
 
+    protected override void Start () {
+        base.Start();
+        NotifyStateChange();
+    }
+    
+    
     public virtual void SetInteractable(bool interactable)
     {
         this.interactable = interactable;
-        Display.DrawSignals(interactable);
+        OnInteractableSet?.Invoke(interactable);
     }
+    public virtual void UpdateSignalName(string newName) => signalName = newName;
 
-    public void SetDisplayState(uint state)
+    public void NotifyStateChange()
     {
         if (!interactable) return;
-
-        Display.DrawSignals(interactable, wireType, state);
-        busReadout.gameObject.SetActive(state != 0 && wireType != Pin.WireType.Simple);
-        busReadout.text = state.ToString();
+        OnStateChange?.Invoke(wireType,currentState);
     }
 
-    public static bool InSameGroup(ChipSignal signalA, ChipSignal signalB) =>
-        (signalA.GroupID == signalB.GroupID) && (signalA.GroupID != -1);
 
-
-    public virtual void UpdateSignalName(string newName) => signalName = newName;
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using DLS.Simulation;
 using UnityEngine;
 using SFB;
 
@@ -117,7 +118,7 @@ public class EEPROM : BuiltinChip
 		StandaloneFileBrowser.SaveFilePanelAsync(
 		  "Save binary file", "", "", extensions, (string path) =>
 		  {
-			  if (path != null && path != "")
+			  if (!string.IsNullOrEmpty(path))
 			  {
 				  System.IO.File.WriteAllBytes(path, contents);
 			  }
@@ -126,25 +127,22 @@ public class EEPROM : BuiltinChip
 
 	protected override void ProcessOutput()
 	{
-		uint address = inputPins[1].State;
-		uint index = address * 2;
+		PinState address = inputPins[1].State;
+		uint index = address.ToUint() * 2;
 		uint data = (uint)(contents[index] << 8 | contents[index + 1]);
 
 		//reading
-		outputPins[0].ReceiveSignal(data);
+		outputPins[0].ReceiveSignal((PinState)data);
 
-		if (inputPins[0].State > 0)
-		{
-			//writing
-			uint newData = inputPins[2].State;
+		if (inputPins[0].State <= 0) return;
+		//writing
+		uint newData = inputPins[2].State.ToUint();
 
-			if (newData != data)
-			{
-				contents[index] = (byte)(newData >> 8);
-				contents[index + 1] = (byte)(newData & 0xFF);
-				if (autoSaveAndLoad)
-					SaveSystem.SaveEEPROMContents(contents);
-			}
-		}
+		if (newData == data) return;
+		
+		contents[index] = (byte)(newData >> 8);
+		contents[index + 1] = (byte)(newData & 0xFF);
+		if (autoSaveAndLoad)
+			SaveSystem.SaveEEPROMContents(contents);
 	}
 }

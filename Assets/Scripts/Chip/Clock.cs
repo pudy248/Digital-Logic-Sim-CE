@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using DLS.Simulation;
 using UnityEngine;
 using TMPro;
 public class Clock : BuiltinChip
@@ -38,9 +39,9 @@ public class Clock : BuiltinChip
     private IEnumerator ClockTick()
     {
         yield return Waiter;
-        outputPins[0].ReceiveSignal(1);
+        outputPins[0].ReceiveSignal(PinState.HIGH);
         yield return Waiter;
-        outputPins[0].ReceiveSignal(0);
+        outputPins[0].ReceiveSignal(PinState.LOW);
         StartCoroutine(ClockTick());
     }
 
