@@ -35,11 +35,8 @@ public class Pin : MonoBehaviour
     // Current state of the pin: -1 = HighZ 0 == LOW, 1 == HIGH 
     PinState currentState;
 
-    bool interact;
-    
-    public static float radius => ScalingManager.pinSize / 2 / 2;
 
-    public static float interactionRadius => radius * 1.1f;
+
 
     public static int NumBits(WireType type)
     {
@@ -55,16 +52,8 @@ public class Pin : MonoBehaviour
 
     void Start()
     {
-
         Simulation.instance.OnSimulationTogle += (_)=> NotifyStateChange();
-        
-        interact = false;
-        SetScale();
     }
-
-    public void SetScale() { transform.localScale = Vector3.one * (radius * 2); }
-
-
 
 
     // Get the current state of the pin: 0 == LOW, 1 == HIGH
@@ -146,19 +135,15 @@ public class Pin : MonoBehaviour
 
     public void MouseEnter()
     {
-        interact = true;
-        transform.localScale = Vector3.one * (interactionRadius * 2);
-        NotifyInteraction();
+        NotifyInteraction(true);
     }
 
     public void MouseExit()
     {
-        interact = false;
-        transform.localScale = Vector3.one * (radius * 2);
-        NotifyInteraction();
+        NotifyInteraction(false);
     }
 
-    private void NotifyInteraction()
+    private void NotifyInteraction(bool interact) 
     {
         OnInteraction?.Invoke(interact);
     }

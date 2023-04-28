@@ -41,8 +41,7 @@ public class FolderSystem
     public static bool ContainsIndex(int i) => Inizialized && Folders.ContainsKey(i);
     public static string GetFolderName(int i)
     {
-        if (!ContainsIndex(i)) return "";
-        return Folders[i];
+        return !ContainsIndex(i) ? "" : Folders[i];
     }
 
     public static int AddFolder(string newFolderName)

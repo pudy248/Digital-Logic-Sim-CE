@@ -115,7 +115,7 @@ MonoBehaviour:
     Tristate: {r: 0, g: 0, b: 0, a: 0}
     DisplayPriority: 0
   indicatorRenderer: {fileID: 8517369164244439844}
-  pinRenderer: {fileID: 0}
+  pinRenderer: {fileID: 299265774800456569}
   wireRenderer: {fileID: 8004754418866402433}
 --- !u!1 &925757999021658741
 GameObject:
@@ -746,6 +746,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3f5693e72562648d19f39eace0ccffd6, type: 3}
+--- !u!23 &299265774800456569 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 7724145159576276130, guid: 3f5693e72562648d19f39eace0ccffd6,
+    type: 3}
+  m_PrefabInstance: {fileID: 8004754419733301211}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1644414816724565277 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8774343771143846598, guid: 3f5693e72562648d19f39eace0ccffd6,
@@ -764,21 +770,3 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 8004754419733301211}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &3036764961740707853 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4986144629710217174, guid: 3f5693e72562648d19f39eace0ccffd6,
-    type: 3}
-  m_PrefabInstance: {fileID: 8004754419733301211}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &4637661919263803637
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3036764961740707853}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: adb33035a769473409b7d9a9175c4237, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

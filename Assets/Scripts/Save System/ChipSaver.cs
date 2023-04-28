@@ -76,7 +76,7 @@ public static class ChipSaver
 
         foreach (SavedComponentChip scc in currentChip.savedComponentChips)
         {
-            if (Array.FindIndex(manager.builtinChips,
+            if (Array.FindIndex(manager.SpawnableBuiltinChips,
                                 c => c.chipName == scc.chipName) != -1) continue;
 
             foreach (var chip in FindChildrenChips(scc.chipName))

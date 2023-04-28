@@ -97,7 +97,7 @@ public class CreateMenu : MonoBehaviour
     public void FinishCreation()
     {
         Manager.ActiveChipEditor.Data.FolderIndex = FolderSystem.ReverseIndex(folderDropdown.options[folderDropdown.value].text);
-        Manager.ActiveChipEditor.Data.scale = ScalingManager.scale;
+        Manager.ActiveChipEditor.Data.scale = ScalingManager.Scale;
         Manager.instance.SaveAndPackageChip();
     }
 

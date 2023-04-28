@@ -58,11 +58,11 @@ public class Bus : Chip
 
     Pin FindUnusedOutputPin()
     {
-        for (int i = 0; i < outputPins.Length; i++)
+        foreach (var t in outputPins)
         {
-            if (outputPins[i].childPins.Count == 0)
+            if (t.childPins.Count == 0)
             {
-                return outputPins[i];
+                return t;
             }
         }
 
@@ -72,11 +72,11 @@ public class Bus : Chip
 
     Pin FindUnusedInputPin()
     {
-        for (int i = 0; i < inputPins.Length; i++)
+        foreach (var t in inputPins)
         {
-            if (inputPins[i].parentPin == null)
+            if (t.parentPin == null)
             {
-                return inputPins[i];
+                return t;
             }
         }
 

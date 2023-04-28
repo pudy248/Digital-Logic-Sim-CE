@@ -69,13 +69,13 @@ public class WireDisplay : MonoBehaviour
     
     private void SelectApparence()
     {
-        SetUpThickness(ScalingManager.wireSelectedThickness * thicknessMultiplier);
+        SetUpThickness(ScalingManager.WireSelectedThickness * thicknessMultiplier);
         mat.color = _signalPalette.PinInteractionPalette.WireHighlighte;
     }
 
     private void NormalApparence()
     {
-        SetUpThickness(ScalingManager.wireThickness * thicknessMultiplier);
+        SetUpThickness(ScalingManager.WireThickness * thicknessMultiplier);
         mat.color = IsSimulationActive ?  CurrentStatusColor: CurrentTheme.Low;;
     }
 
@@ -89,7 +89,7 @@ public class WireDisplay : MonoBehaviour
     {
         WireCollider.points = drawPoints.ToArray();
         WireCollider.edgeRadius =
-            ScalingManager.wireThickness * thicknessMultiplier;
+            ScalingManager.WireThickness * thicknessMultiplier;
     }
 
     void UpdateSmoothedLine(List<Vector2> anchorPoints)

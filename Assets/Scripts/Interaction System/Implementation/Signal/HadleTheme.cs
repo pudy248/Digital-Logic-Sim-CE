@@ -1,5 +1,6 @@
 ﻿using UnityEditor;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class HadleTheme : MonoBehaviour
 {
@@ -8,8 +9,7 @@ public class HadleTheme : MonoBehaviour
     //Handler
     public Material HandleMat;
     public Material HighlightedHandleMat;
-    public Material SelectedHandleMat;
-    public Material SelectedAndhighlightedHandle;
+    public Material FocusedHandle;
 
 
     public void Start()
@@ -22,10 +22,7 @@ public class HadleTheme : MonoBehaviour
         if (HighlightedHandleMat == null)
             HighlightedHandleMat =  MaterialUtility.CreateUnlitMaterial(PinPalette.highlightedHandleCol);
         
-        if (SelectedHandleMat == null)
-            SelectedHandleMat =  MaterialUtility.CreateUnlitMaterial(PinPalette.selectedHandleCol);
-        
-        if (SelectedAndhighlightedHandle == null)
-            SelectedAndhighlightedHandle = MaterialUtility.CreateUnlitMaterial(PinPalette.selectedAndFocusedHandleCol);
+        if (FocusedHandle == null)
+            FocusedHandle = MaterialUtility.CreateUnlitMaterial(PinPalette.FocusedHandleCol);
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using DLS.Simulation;
 using Interaction.Display;
 using JetBrains.Annotations;
+using TMPro;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -16,6 +17,8 @@ namespace Interaction
     {
         //Editor 
         [SerializeField] private ChipSignal signalPrefab;
+
+        private DecimalDisplay DecimalDisplay;
 
 
         //Work Variable
@@ -38,11 +41,17 @@ namespace Interaction
         //Property 
         public bool IsGroup => GroupSize > 1;
         public string SignalName => Signals[0].signalName;
-        public bool UseTwosComplement => Signals[0].useTwosComplement;
+        public bool UseTwosComplement { get; private set; } = true;
         public Pin.WireType WireType => Signals[0].wireType;
 
         public Vector3 GroupCenter => (Signals[0].transform.position + Signals[^1].transform.position) / 2;
 
+
+        private void Awake()
+        {
+            DecimalDisplay = GetComponentInChildren<DecimalDisplay>();
+            DecimalDisplay.gameObject.SetActive(false);
+        }
 
         public void SetUpCreation(int _groupSize, float _boundsBottom, float _boundsTop,
             Vector3 _pinContainers, Action<Chip> _onDeleteChip,
@@ -54,11 +63,22 @@ namespace Interaction
             BoundsTop = _boundsTop;
             Signals = new List<ChipSignal>(GroupSize);
 
-            for (int i = 0; i < GroupSize; i++)
+            for (var i = 0; i < GroupSize; i++)
             {
                 var spawnedSignal = Instantiate(signalPrefab, _pinContainers, Quaternion.identity, transform);
                 Signals.Add(spawnedSignal);
+
+                if (!IsGroup) continue;
+
+                spawnedSignal.GetComponent<ChipSignal>().OnStateChange += (_, _) =>
+                    DecimalDisplay.UpdateDecimalDisplay(Signals, UseTwosComplement);
             }
+
+            if (IsGroup)
+            {
+                DecimalDisplay.gameObject.SetActive(true);
+            }
+
 
             UpdateScaleAndPosition();
             SetPinInteractable();
@@ -92,12 +112,13 @@ namespace Interaction
 
                 Handle.OnStartDrag += (pos) =>
                 {
-                    handleStartPosy = pos.y;
+                    DragStartY = pos.y;
+                    centerDragStartDistance = DragStartY - GroupCenter.y;
                     DragCancelled = false;
                 };
 
                 Handle.OnDrag += Drag;
-                Handle.OnStopDrag += () => handleStartPosy = 0;
+                Handle.OnStopDrag += () => DragStartY = 0;
             }
         }
 
@@ -109,20 +130,22 @@ namespace Interaction
 
         #region Positioning
 
-        private float handleStartPosy;
+        private float DragStartY;
+        private float centerDragStartDistance;
         private bool DragCancelled = false;
+
 
         private void Drag()
         {
             if (DragCancelled) return;
 
             Vector2 mousePos = InputHelper.MouseWorldPos;
-            float handleNewY = handleStartPosy - (handleStartPosy - mousePos.y);
+            float handleNewY = mousePos.y - centerDragStartDistance;
             DragCancelled = Input.GetKeyDown(KeyCode.Escape);
 
-            if (DragCancelled) handleNewY = handleStartPosy;
+            if (DragCancelled) handleNewY = DragStartY - centerDragStartDistance;
 
-            SetUpPosition(handleNewY);
+            MoveCenterYPosition(handleNewY);
             NotifyMovement();
             // Cancel drag and deselect
             if (DragCancelled) ReleaseFocus();
@@ -139,13 +162,19 @@ namespace Interaction
                 var y = AdjustYForGroupMember(transform.position.y, i);
                 Signals[i].transform.SetYPos(y);
             }
+
+            DecimalDisplay.transform.SetYPos(GroupCenter.y);
         }
 
         float AdjustYForGroupMember(float DesideredCeterY, int index)
         {
-            float halfExtent = ScalingManager.groupSpacing * (GroupSize - 1f);
-            float maxY = DesideredCeterY + halfExtent + ScalingManager.handleSizeY / 2f;
-            float minY = DesideredCeterY - halfExtent - ScalingManager.handleSizeY / 2f;
+            var handleSizeY = ScalingManager.HandleSizeY;
+            var GroupSpacing = ScalingManager.GroupSpacing;
+
+                
+            float halfExtent = GroupSpacing * (GroupSize - 1f);
+            float maxY = DesideredCeterY + halfExtent + handleSizeY / 2f;
+            float minY = DesideredCeterY - halfExtent - handleSizeY / 2f;
 
             if (maxY > BoundsTop)
                 DesideredCeterY -= (maxY - BoundsTop);
@@ -161,8 +190,9 @@ namespace Interaction
 
         float ClampYBetweenBorder(float y)
         {
-            return Mathf.Clamp(y, BoundsBottom + ScalingManager.handleSizeY / 2f,
-                BoundsTop - ScalingManager.handleSizeY / 2f);
+            var HandleSizeY = ScalingManager.HandleSizeY;
+            return Mathf.Clamp(y, BoundsBottom + HandleSizeY / 2f,
+                BoundsTop - HandleSizeY / 2f);
         }
 
         #endregion
@@ -175,13 +205,15 @@ namespace Interaction
         }
 
 
-        private void SetUpPosition(float handleNewY)
+        private void MoveCenterYPosition(float NewYcenter)
         {
             for (var i = 0; i < Signals.Count; i++)
             {
-                var y = AdjustYForGroupMember(handleNewY, i);
+                var y = AdjustYForGroupMember(NewYcenter, i);
                 Signals[i].transform.SetYPos(y);
             }
+
+            DecimalDisplay.transform.SetYPos(GroupCenter.y);
         }
 
         public void ChangeWireType(int mode)
@@ -225,8 +257,11 @@ namespace Interaction
             foreach (ChipSignal Signal in Signals)
             {
                 Signal.UpdateSignalName(NewName);
-                Signal.useTwosComplement = twosComplementToggle;
+                UseTwosComplement = twosComplementToggle;
             }
+
+            if (IsGroup)
+                DecimalDisplay.UpdateDecimalDisplay(Signals, UseTwosComplement);
         }
 
         #endregion
@@ -241,8 +276,11 @@ namespace Interaction
         {
         }
 
+        private bool DeleteAllowed = true;
+
         public override void DeleteCommand()
         {
+            if (!DeleteAllowed) return;
             foreach (ChipSignal selectedSignal in Signals)
             {
                 OnDeleteChip?.Invoke(selectedSignal);
@@ -252,6 +290,34 @@ namespace Interaction
 
             OnDeleteInteraction?.Invoke();
             Destroy(gameObject);
+        }
+
+        public void SilenceDeleteCommand()
+        {
+            DeleteAllowed = false;
+        }
+
+        public void EnableDeleteCommand()
+        {
+            DeleteAllowed = true;
+        }
+
+        private void OnDrawGizmos()
+        {
+            var dragStart = new Vector2(transform.position.x, DragStartY);
+            if (DragStartY != 0)
+            {
+                Gizmos.color = Color.green;
+                Gizmos.DrawSphere(dragStart, 0.05f);
+            }
+
+            Gizmos.color = Color.magenta;
+            var center = new Vector2(transform.position.x, GroupCenter.y);
+
+            Gizmos.DrawSphere(center, 0.05f);
+            Gizmos.color = Color.yellow;
+
+            Gizmos.DrawLine(center, dragStart);
         }
     }
 }

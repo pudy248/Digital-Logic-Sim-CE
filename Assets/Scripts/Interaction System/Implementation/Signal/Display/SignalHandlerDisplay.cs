@@ -9,8 +9,7 @@ namespace Interaction.Display
     {
         Default,
         Highlighted,
-        Selected,
-        SelectedAndFocused
+        Focused
     }
     public class SignalHandlerDisplay : MonoBehaviour
     {
@@ -25,17 +24,12 @@ namespace Interaction.Display
             HandlerRender = GetComponent<Renderer>();
             var Lissener = GetComponentInParent<HandleEvent>();
             RegisterToHandleGroup(Lissener);
-
-        }
-
-        public void RegisterToHandleGroup(HandleEvent Lissener)
-        {
-            Lissener.OnHandleEnter += () => CheckedChangeHandleColor(HandleState.Highlighted);
-            Lissener.OnHandleExit += () => CheckedChangeHandleColor(HandleState.Default);
-            Lissener.OnHandleClick += () => ChangeHandleColor(HandleState.Selected);
+            
+            if(Interaction == null) return;
+            
             Interaction.OnFocusObtained += () =>
             {
-                ChangeHandleColor(HandleState.SelectedAndFocused);
+                ChangeHandleColor(HandleState.Focused);
                 ColorCanChange = false;
             };
             Interaction.OnFocusLost += () =>
@@ -43,6 +37,13 @@ namespace Interaction.Display
                 ChangeHandleColor(HandleState.Default);
                 ColorCanChange = true;
             };
+
+        }
+
+        public void RegisterToHandleGroup(HandleEvent Lissener)
+        {
+            Lissener.OnHandleEnter += () => CheckedChangeHandleColor(HandleState.Highlighted);
+            Lissener.OnHandleExit += () => CheckedChangeHandleColor(HandleState.Default);
         }
 
 
@@ -61,11 +62,8 @@ namespace Interaction.Display
                 case HandleState.Highlighted:
                     selectedMat = materialReference.HighlightedHandleMat;
                     break;
-                case HandleState.Selected:
-                    selectedMat = materialReference.SelectedHandleMat;
-                    break;
-                case HandleState.SelectedAndFocused:
-                    selectedMat = materialReference.SelectedAndhighlightedHandle;
+                case HandleState.Focused:
+                    selectedMat = materialReference.FocusedHandle;
                     break;
                 default:
                     selectedMat = materialReference.HandleMat;

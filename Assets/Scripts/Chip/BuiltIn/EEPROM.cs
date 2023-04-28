@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Core;
 using DLS.Simulation;
 using UnityEngine;
 using SFB;
@@ -10,6 +11,21 @@ public class EEPROM : BuiltinChip
 	public Pin writePin;
 
 	public bool autoSaveAndLoad = false;
+
+	
+	public override void Init()
+	{
+		base.Init();
+		ChipType = ChipType.Miscellaneous;
+		PackageGraphicData = new PackageGraphicData()
+		{
+			PackageColour = new Color(127, 127, 127, 255),
+			NameTextColor = new Color(237, 141, 255,1)
+		};
+		inputPins = new List<Pin>(13);
+		outputPins = new List<Pin>(8);
+		chipName = "HARD DRIVE";
+	}
 
 	protected override void Awake()
 	{

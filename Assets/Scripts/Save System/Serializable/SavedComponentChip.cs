@@ -18,13 +18,13 @@ public class SavedComponentChip {
         posY = chip.transform.position.y ;
 
         // Input pins
-        inputPins = new SavedInputPin[chip.inputPins.Length];
+        inputPins = new SavedInputPin[chip.inputPins.Count];
 		for (int i = 0; i < inputPins.Length; i++)
 			inputPins[i] = new SavedInputPin (chipSaveData, chip.inputPins[i]);
 
 		// Output pins
-		outputPins = new SavedOutputPin[chip.outputPins.Length];
-		for (int i = 0; i < chip.outputPins.Length; i++) 
+		outputPins = new SavedOutputPin[chip.outputPins.Count];
+		for (int i = 0; i < chip.outputPins.Count; i++) 
 			outputPins[i] = new SavedOutputPin(chipSaveData, chip.outputPins[i]);
 	}
 

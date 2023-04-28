@@ -44,10 +44,6 @@ public class ChipInterfaceEditor : MonoBehaviour
 
     public SignalInteraction selectedSignals { get; private set; }
 
-
-    // bool mouseInInputBounds;
-
-
     // Grouping
     private int DesiredGroupSize
     {
@@ -70,17 +66,11 @@ public class ChipInterfaceEditor : MonoBehaviour
     private void Start()
     {
         SignalsByID = new Dictionary<int, SignalInteraction>();
-        
+
         float BoundsTop = transform.position.y + (transform.localScale.y / 2);
         float BoundsBottom = transform.position.y - transform.localScale.y / 2f;
-        SignalBuilder = new SignalInteractionBuilder(SignalInteractablePref, signalHolder, OnDeleteChip, BoundsBottom,BoundsTop,editorInterfaceType);
-    }
-
-
-    // Event handler when changed input or output pin wire type
-    public void ChangeWireType(int mode)
-    {
-        selectedSignals.ChangeWireType(mode);
+        SignalBuilder = new SignalInteractionBuilder(SignalInteractablePref, signalHolder, OnDeleteChip, BoundsBottom,
+            BoundsTop, editorInterfaceType);
     }
 
 
@@ -88,12 +78,15 @@ public class ChipInterfaceEditor : MonoBehaviour
     {
         signal.transform.parent = signalHolder;
         signal.signalName = signal.outputPins[0].pinName;
+        
+        AddSignal(signal.transform.position.y);
     }
 
     public void LoadSignal(OutputSignal signal)
     {
         signal.transform.parent = signalHolder;
         signal.signalName = signal.inputPins[0].pinName;
+        AddSignal(signal.transform.position.y);
     }
 
 
@@ -126,53 +119,43 @@ public class ChipInterfaceEditor : MonoBehaviour
 
 
     // Handles spawning if user clicks, otherwise displays preview
+    float containerX => chipContainer.position.x +
+                        chipContainer.localScale.x / 2 *
+                        ((editorInterfaceType == EditorInterfaceType.Input) ? -1 : 1);
+
     void HandleSpawning()
     {
         if (InputHelper.MouseOverUIObject())
             return;
 
-        float containerX = chipContainer.position.x +
-                           chipContainer.localScale.x / 2 *
-                           ((editorInterfaceType == EditorInterfaceType.Input) ? -1 : 1);
 
         // Spawn on mouse down
-        if (Input.GetMouseButtonDown(0))
-        {
-            if (InputHelper.CompereTagObjectUnderMouse2D(ProjectTags.InterfaceMask, ProjectLayer.Default)) return;
+        if (!Input.GetMouseButtonDown(0)) return;
 
-            var ContaierPosition = new Vector3(containerX, InputHelper.MouseWorldPos.y, chipContainer.position.z);
-            var Interactable = SignalBuilder.Build(ContaierPosition, DesiredGroupSize);
-            SignalsByID.Add(Interactable.id, Interactable.obj);
-            DesiredGroupSize = 1;
+        if (InputHelper.CompereTagObjectUnderMouse2D(ProjectTags.InterfaceMask, ProjectLayer.Default)) return;
 
-            
-            OnChipsAddedOrDeleted?.Invoke();
-        }
+
+        AddSignal(InputHelper.MouseWorldPos.y);
+
+
+        OnChipsAddedOrDeleted?.Invoke();
     }
-    
 
-    SignalInteraction GetSignalUnderMouse()
+    private void AddSignal(float yPos)
     {
-        var e = InputHelper.GetUIObjectsUnderMouse();
-        foreach (var obj in e)
-        {
-            var p = obj.GetComponent<ChipSignal>();
-            if (p is not null)
-                return p.GetComponentInParent<SignalInteraction>();
-        }
-
-        return null;
+        var ContaierPosition = new Vector3(containerX, yPos, chipContainer.position.z);
+        var Interactable = SignalBuilder.Build(ContaierPosition, DesiredGroupSize);
+        SignalsByID.Add(Interactable.id, Interactable.obj);
+        DesiredGroupSize = 1;
     }
-
-
 
     public void UpdateScale()
     {
         transform.localPosition =
-            new Vector3(ScalingManager.ioBarDistance * (editorInterfaceType == EditorInterfaceType.Input ? -1f : 1f),
+            new Vector3(ScalingManager.IoBarDistance * (editorInterfaceType == EditorInterfaceType.Input ? -1f : 1f),
                 transform.localPosition.y, transform.localPosition.z);
-        barGraphic.localScale = new Vector3(ScalingManager.ioBarGraphicWidth, 1, 1);
-        GetComponent<BoxCollider2D>().size = new Vector2(ScalingManager.ioBarGraphicWidth, 1);
+        barGraphic.localScale = new Vector3(ScalingManager.IoBarGraphicWidth, 1, 1);
+        GetComponent<BoxCollider2D>().size = new Vector2(ScalingManager.IoBarGraphicWidth, 1);
 
         foreach (var sig in SignalsByID.Values)
             sig.UpdateScaleAndPosition();

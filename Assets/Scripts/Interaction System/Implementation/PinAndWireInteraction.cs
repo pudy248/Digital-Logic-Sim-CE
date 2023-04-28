@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 
@@ -30,6 +31,10 @@ public class PinAndWireInteraction : Interactable
 
     List<Wire> wiresToPaste;
     public State CurrentState => _currentState;
+    
+    
+    float PinRadius => PinDisplay.radius / 4;
+    float PinInteraction => PinRadius * PinDisplay.IteractionFactor;
 
     void Awake()
     {
@@ -275,9 +280,11 @@ public class PinAndWireInteraction : Interactable
 
     void HandlePinHighlighting()
     {
+        
+
+        
         Vector2 mousePos = InputHelper.MouseWorldPos;
-        Collider2D pinCollider = Physics2D.OverlapCircle(
-            mousePos, Pin.interactionRadius - Pin.radius, pinMask);
+        Collider2D pinCollider = Physics2D.OverlapCircle(mousePos, PinInteraction - PinRadius, pinMask);
         if (pinCollider)
         {
             Pin newPinUnderMouse = pinCollider.GetComponent<Pin>();
@@ -307,15 +314,11 @@ public class PinAndWireInteraction : Interactable
     // Delete all wires connected to given chip
     void DeleteChipWires(Chip chip)
     {
-        var wiresToDestroy = new List<Wire>();
+        var wiresToDestroy = (chip.outputPins.SelectMany(outputPin => outputPin.childPins,
+            (outputPin, childPin) => wiresByChipInputPin[childPin])).ToList();
 
-        foreach (var outputPin in chip.outputPins)
-            foreach (var childPin in outputPin.childPins)
-                wiresToDestroy.Add(wiresByChipInputPin[childPin]);
-
-        foreach (var inputPin in chip.inputPins)
-            if (inputPin.parentPin)
-                wiresToDestroy.Add(wiresByChipInputPin[inputPin]);
+        wiresToDestroy.AddRange(chip.inputPins.Where(inputPin => inputPin.parentPin)
+            .Select(inputPin => wiresByChipInputPin[inputPin]));
 
         foreach (var wire in wiresToDestroy)
             DestroyWire(wire);

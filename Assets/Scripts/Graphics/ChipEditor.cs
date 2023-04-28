@@ -25,7 +25,10 @@ public class ChipEditor : MonoBehaviour
 
         pinAndWireInteraction.Init(chipInteraction, inputsEditor, outputsEditor);
         pinAndWireInteraction.onConnectionChanged += OnChipNetworkModified;
-        
+     
+        ScalingManager.OnScaleChange +=inputsEditor.UpdateScale;
+        ScalingManager.OnScaleChange +=outputsEditor.UpdateScale;
+        ScalingManager.OnScaleChange += () => pinNameDisplayManager.UpdateTextSize(ScalingManager.PinDisplayFontSize);
     }
 
     void LateUpdate()
@@ -39,24 +42,24 @@ public class ChipEditor : MonoBehaviour
     public void LoadFromSaveData(ChipSaveData saveData)
     {
         Data = saveData.Data;
-        ScalingManager.scale = Data.scale;
+        ScalingManager.i.SetScale(Data.scale);
 
         // Load component chips
         foreach (Chip componentChip in saveData.componentChips)
         {
-            if (componentChip is InputSignal inp)
+            switch (componentChip)
             {
-                inp.wireType = inp.outputPins[0].wireType;
-                inputsEditor.LoadSignal(inp);
-            }
-            else if (componentChip is OutputSignal outp)
-            {
-                outp.wireType = outp.inputPins[0].wireType;
-                outputsEditor.LoadSignal(outp);
-            }
-            else
-            {
-                chipInteraction.LoadChip(componentChip);
+                case InputSignal inp:
+                    inp.wireType = inp.outputPins[0].wireType;
+                    inputsEditor.LoadSignal(inp);
+                    break;
+                case OutputSignal outp:
+                    outp.wireType = outp.inputPins[0].wireType;
+                    outputsEditor.LoadSignal(outp);
+                    break;
+                default:
+                    chipInteraction.LoadChip(componentChip);
+                    break;
             }
         }
 
@@ -70,18 +73,6 @@ public class ChipEditor : MonoBehaviour
         }
 
         ChipEditorOptions.instance.SetUIValues(this);
-    }
-
-    public void UpdateChipSizes()
-    {
-        foreach (Chip chip in chipInteraction.allChips)
-        {
-            ChipPackage package = chip.GetComponent<ChipPackage>();
-            if (package)
-            {
-                package.SetSizeAndSpacing(chip);
-            }
-        }
     }
 
 }

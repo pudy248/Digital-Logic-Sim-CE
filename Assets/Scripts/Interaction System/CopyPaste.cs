@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class WireInformation
 {
-
     public Wire wire;
 
     public int startChipIndex;
@@ -15,13 +14,16 @@ public class WireInformation
 
     public Vector2[] anchorPoints;
 
-    public WireInformation() { }
+    public WireInformation()
+    {
+    }
 }
 
 public class CopyPaste : MonoBehaviour
 {
     List<KeyValuePair<Chip, Vector3>> clipboard =
         new List<KeyValuePair<Chip, Vector3>>();
+
     List<WireInformation> wires = new List<WireInformation>();
 
     void Update()
@@ -59,6 +61,7 @@ public class CopyPaste : MonoBehaviour
             {
                 positions.Add(chip.transform.position);
             }
+
             Vector3 center = MathUtility.Center(positions);
             foreach (Chip chip in selected)
             {
@@ -79,10 +82,11 @@ public class CopyPaste : MonoBehaviour
                 if (clipboardItem.Key is CustomChip custom)
                     custom.ApplyWireModes();
             }
+
             List<Chip> newChips =
                 Manager.ActiveChipEditor.chipInteraction.PasteChips(clipboard);
             Manager.ActiveChipEditor.pinAndWireInteraction.PasteWires(wires,
-                                                                      newChips);
+                newChips);
         }
     }
 
@@ -112,19 +116,18 @@ public class CopyPaste : MonoBehaviour
             {
                 anchorPoints.Add(t);
             }
-            
+
             info.anchorPoints = anchorPoints.ToArray();
 
             info.endChipIndex = chips.IndexOf(wire.endPin.chip);
             info.startChipIndex = chips.IndexOf(wire.startPin.chip);
 
-            info.endChipPinIndex =
-                Array.IndexOf(chips[info.endChipIndex].inputPins, wire.endPin);
-            info.startChipPinIndex =
-                Array.IndexOf(chips[info.startChipIndex].outputPins, wire.startPin);
+            info.endChipPinIndex = chips[info.endChipIndex].inputPins.FindIndex(x => x == wire.endPin);
+            info.startChipPinIndex = chips[info.startChipIndex].outputPins.FindIndex(x => x == wire.startPin);
 
             return info;
         }
+
         return null;
     }
 }

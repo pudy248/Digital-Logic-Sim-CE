@@ -1,11 +1,25 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using Core;
 using DLS.Simulation;
 
 public class Keyboard : BuiltinChip
 {
 
+    public override void Init()
+    {
+        base.Init();
+        ChipType = ChipType.Miscellaneous;
+        PackageGraphicData = new PackageGraphicData()
+        {
+            PackageColour = new Color(1, 2, 3, 255)
+        };
+        inputPins = new List<Pin>(0);
+        outputPins = new List<Pin>(0);
+        chipName = "KEYBOARD";
+    }
+    
     public List<string> chars = new List<string>();
     void Update()
     {

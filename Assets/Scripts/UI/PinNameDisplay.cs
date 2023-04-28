@@ -11,7 +11,7 @@ public class PinNameDisplay : MonoBehaviour
     public void Set(Pin pin)
     {
 
-        nameUI.fontSize = ScalingManager.pinDisplayFontSize;
+        nameUI.fontSize = ScalingManager.PinDisplayFontSize;
 
         if (string.IsNullOrEmpty(pin.pinName))
         {
@@ -22,17 +22,17 @@ public class PinNameDisplay : MonoBehaviour
             nameUI.text = pin.pinName;
         }
 
-        backgroundPadding.x = ScalingManager.pinDisplayPadding;
+        backgroundPadding.x = ScalingManager.PinDisplayPadding;
         nameUI.rectTransform.localPosition =
             new Vector3(nameUI.rectTransform.localPosition.x,
-                        ScalingManager.pinDisplayTextOffset,
+                        ScalingManager.PinDisplayTextOffset,
                         nameUI.rectTransform.localPosition.z);
 
         float backgroundSizeX = nameUI.preferredWidth + backgroundPadding.x;
         float backgroundSizeY = nameUI.preferredHeight + backgroundPadding.y;
         background.localScale = new Vector3(backgroundSizeX, backgroundSizeY, 1);
 
-        float spacingFromPin = (backgroundSizeX / 2 + Pin.interactionRadius * 1.5f);
+        float spacingFromPin = (backgroundSizeX / 2 + PinDisplay.interactionRadius * 1.5f);
         spacingFromPin *= (pin.pinType == Pin.PinType.ChipInput) ? -1 : 1;
         transform.position = pin.transform.position +
                              Vector3.right * spacingFromPin + Vector3.forward * -1;

@@ -16,8 +16,6 @@ public class Simulation : MonoBehaviour
     public float minStepTime = 0.075f;
     float lastStepTime;
 
-    List<CustomChip> standaloneChips = new List<CustomChip>();
-
     public void ToogleActive()
     {
         // Method called by the "Run/Stop" button that toogles simulation
@@ -86,20 +84,6 @@ public class Simulation : MonoBehaviour
         foreach (var inputSignal in inputSignals)
         {
             ((InputSignal)inputSignal).SendSignal();
-        }
-        
-        foreach (Chip chip in chipEditor.chipInteraction.allChips)
-        {
-            if (chip is CustomChip custom)
-            {
-                // if (custom.HasNoInputs) {
-                // 	custom.ProcessOutputNoInputs();
-                // }
-                custom.pseudoInput?.ReceiveSignal(0);
-                if (custom.pseudoInput != null)
-                {
-                }
-            }
         }
     }
 

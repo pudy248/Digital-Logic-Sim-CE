@@ -20,8 +20,7 @@ public class ChipSignal : Chip
     public WireType wireType = WireType.Simple;
 
     protected bool interactable = true;
-    public bool displayGroupDecimalValue { get; set; } = false;
-    public bool useTwosComplement { get; set; } = true;
+
 
     [HideInInspector] public string signalName;
 

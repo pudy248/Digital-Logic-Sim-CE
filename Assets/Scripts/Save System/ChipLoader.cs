@@ -7,7 +7,6 @@ using System.Linq;
 
 public static class ChipLoader
 {
-
     public static SavedChip[] GetAllSavedChips(string[] chipPaths)
     {
         var savedChips = new SavedChip[chipPaths.Length];
@@ -33,19 +32,21 @@ public static class ChipLoader
 
     public static async void LoadAllChips(string[] chipPaths, Manager manager)
     {
+        var builtinChips = manager.SpawnableBuiltinChips;
+        
         var sw = System.Diagnostics.Stopwatch.StartNew();
         var chipsToLoadDic = GetAllSavedChipsDic(chipPaths);
 
         var progressBar = ProgressBar.New("Loading All Chips...", wholeNumbers: true);
-        progressBar.Open(0, chipsToLoadDic.Count + manager.builtinChips.Length);
+        progressBar.Open(0, chipsToLoadDic.Count + builtinChips.Length);
         progressBar.SetValue(0, "Start Loading...");
 
         // Maintain dictionary of loaded chips (initially just the built-in chips)
         var loadedChips = new Dictionary<string, Chip>();
         var i = 0;
-        for (; i < manager.builtinChips.Length; i++)
+        for (; i < builtinChips.Length; i++)
         {
-            var builtinChip = manager.builtinChips[i];
+            var builtinChip = builtinChips[i];
             progressBar.SetValue(i, $"Loading '{builtinChip.chipName}'...");
             loadedChips.Add(builtinChip.chipName, builtinChip);
             await Task.Yield();
@@ -58,7 +59,7 @@ public static class ChipLoader
             {
                 try
                 {
-                    ResolveDependecy(chip.Value);
+                    ResolveDependency(chip.Value);
                 }
                 catch (Exception e)
                 {
@@ -74,21 +75,23 @@ public static class ChipLoader
         DLSLogger.Log($"Load time: {sw.ElapsedMilliseconds}ms");
 
         // the simulation will never create Cyclic path so simple ricorsive descending graph explore shuld be fine
-        async void ResolveDependecy(SavedChip chip)
+        async void ResolveDependency(SavedChip chip)
         {
-            foreach (var dependancy in chip.ChipDependecies)
+            foreach (var dependency in chip.ChipDependecies)
             {
-                if (string.Equals(dependancy, "SIGNAL IN") || string.Equals(dependancy, "SIGNAL OUT")) continue;
-                if (!loadedChips.ContainsKey(dependancy))
-                { ResolveDependecy(chipsToLoadDic[dependancy]); await Task.Yield(); i++; }
+                if (string.Equals(dependency, "SIGNAL IN") || string.Equals(dependency, "SIGNAL OUT")) continue;
+                if (loadedChips.ContainsKey(dependency)) continue;
+                
+                ResolveDependency(chipsToLoadDic[dependency]);
+                await Task.Yield();
+                i++;
             }
-            if (!loadedChips.ContainsKey(chip.Data.name))
-            {
-                Chip loadedChip = manager.LoadChip(LoadChip(chip, loadedChips, manager.wirePrefab));
-                loadedChips.Add(loadedChip.chipName, loadedChip);
-            }
-        }
 
+
+            if (loadedChips.ContainsKey(chip.Data.name)) return;
+            Chip loadedChip = manager.LoadCustomChip(LoadChip(chip, loadedChips, manager.wirePrefab));
+            loadedChips.Add(loadedChip.chipName, loadedChip);
+        }
     }
 
     // Instantiates all components that make up the given chip, and connects them
@@ -96,7 +99,6 @@ public static class ChipLoader
     // which is returned from the function
     static ChipSaveData LoadChip(SavedChip chipToLoad, Dictionary<string, Chip> previouslyLoadedChips, Wire wirePrefab)
     {
-
         bool WouldLoad(out List<string> ComponentsMissing)
         {
             ComponentsMissing = new List<string>();
@@ -106,6 +108,7 @@ public static class ChipLoader
                 if (!previouslyLoadedChips.ContainsKey(dependency))
                     ComponentsMissing.Add(dependency);
             }
+
             return ComponentsMissing.Count <= 0;
         }
 
@@ -119,6 +122,7 @@ public static class ChipLoader
                 if (i < miss.Count - 1)
                     MissingComp += ",";
             }
+
             DLSLogger.LogError($"Failed to load {chipToLoad.Data.name} sub component: {MissingComp} was missing");
 
             return null;
@@ -147,7 +151,7 @@ public static class ChipLoader
             // Load input pin names
             for (int inputIndex = 0;
                  inputIndex < componentToLoad.inputPins.Length &&
-                 inputIndex < loadedChipData.componentChips[i].inputPins.Length;
+                 inputIndex < loadedChipData.componentChips[i].inputPins.Count;
                  inputIndex++)
             {
                 loadedChipData.componentChips[i].inputPins[inputIndex].pinName =
@@ -157,7 +161,8 @@ public static class ChipLoader
             }
 
             // Load output pin names
-            for (int ouputIndex = 0; ouputIndex < componentToLoad.outputPins.Length;
+            for (int ouputIndex = 0;
+                 ouputIndex < componentToLoad.outputPins.Length;
                  ouputIndex++)
             {
                 loadedChipData.componentChips[i].outputPins[ouputIndex].pinName =
@@ -168,14 +173,15 @@ public static class ChipLoader
         }
 
         // Connect pins with wires
-        for (int chipIndex = 0; chipIndex < chipToLoad.savedComponentChips.Length;
+        for (int chipIndex = 0;
+             chipIndex < chipToLoad.savedComponentChips.Length;
              chipIndex++)
         {
             Chip loadedComponentChip = loadedChipData.componentChips[chipIndex];
             for (int inputPinIndex = 0;
-                 inputPinIndex < loadedComponentChip.inputPins.Length &&
+                 inputPinIndex < loadedComponentChip.inputPins.Count &&
                  inputPinIndex <
-                     chipToLoad.savedComponentChips[chipIndex].inputPins.Length;
+                 chipToLoad.savedComponentChips[chipIndex].inputPins.Length;
                  inputPinIndex++)
             {
                 SavedInputPin savedPin =
@@ -217,9 +223,11 @@ public static class ChipLoader
             Vector2 pos = new Vector2((float)componentToLoad.posX, (float)componentToLoad.posY);
 
             if (!previouslyLoadedChips.ContainsKey(componentName))
-                DLSLogger.LogError($"Failed to load sub component: {componentName} While loading {chipToLoad.Data.name}");
+                DLSLogger.LogError(
+                    $"Failed to load sub component: {componentName} While loading {chipToLoad.Data.name}");
 
-            Chip loadedComponentChip = GameObject.Instantiate(previouslyLoadedChips[componentName], pos, Quaternion.identity, chipEditor.chipImplementationHolder);
+            Chip loadedComponentChip = GameObject.Instantiate(previouslyLoadedChips[componentName], pos,
+                Quaternion.identity, chipEditor.chipImplementationHolder);
 
             loadedComponentChip.gameObject.SetActive(true);
             loadedChipData.componentChips[i] = loadedComponentChip;
@@ -227,7 +235,7 @@ public static class ChipLoader
             // Load input pin names
             for (int inputIndex = 0;
                  inputIndex < componentToLoad.inputPins.Length &&
-                 inputIndex < loadedChipData.componentChips[i].inputPins.Length;
+                 inputIndex < loadedChipData.componentChips[i].inputPins.Count;
                  inputIndex++)
             {
                 loadedChipData.componentChips[i].inputPins[inputIndex].pinName =
@@ -239,7 +247,7 @@ public static class ChipLoader
             // Load output pin names
             for (int ouputIndex = 0;
                  ouputIndex < componentToLoad.outputPins.Length &&
-                 ouputIndex < loadedChipData.componentChips[i].outputPins.Length;
+                 ouputIndex < loadedChipData.componentChips[i].outputPins.Count;
                  ouputIndex++)
             {
                 loadedChipData.componentChips[i].outputPins[ouputIndex].pinName =
@@ -250,12 +258,13 @@ public static class ChipLoader
         }
 
         // Connect pins with wires
-        for (int chipIndex = 0; chipIndex < chipToLoad.savedComponentChips.Length;
+        for (int chipIndex = 0;
+             chipIndex < chipToLoad.savedComponentChips.Length;
              chipIndex++)
         {
             Chip loadedComponentChip = loadedChipData.componentChips[chipIndex];
             for (int inputPinIndex = 0;
-                 inputPinIndex < loadedComponentChip.inputPins.Length &&
+                 inputPinIndex < loadedComponentChip.inputPins.Count &&
                  inputPinIndex < chipToLoad.savedComponentChips[chipIndex].inputPins.Length;
                  inputPinIndex++)
             {
@@ -306,8 +315,8 @@ public static class ChipLoader
         for (int i = 0; i < loadedChipData.wires.Length; i++)
         {
             Wire wire = loadedChipData.wires[i];
-            wire.endPin.pinName = wire.endPin.pinName+i;
-        }    
+            wire.endPin.pinName = wire.endPin.pinName + i;
+        }
 
         // Set wires anchor points
         foreach (SavedWire wire in wireLayout.serializableWires)
@@ -320,23 +329,25 @@ public static class ChipLoader
             try
             {
                 startPinName = loadedChipData.componentChips[wire.parentChipIndex]
-                                   .outputPins[wire.parentChipOutputIndex]
-                                   .pinName;
+                    .outputPins[wire.parentChipOutputIndex]
+                    .pinName;
                 endPinName = loadedChipData.componentChips[wire.childChipIndex]
-                                 .inputPins[wire.childChipInputIndex]
-                                 .pinName;
+                    .inputPins[wire.childChipInputIndex]
+                    .pinName;
             }
             catch (IndexOutOfRangeException)
             {
                 // Swap input pins with output pins.
                 startPinName = loadedChipData.componentChips[wire.parentChipIndex]
-                                   .inputPins[wire.parentChipOutputIndex]
-                                   .pinName;
+                    .inputPins[wire.parentChipOutputIndex]
+                    .pinName;
                 endPinName = loadedChipData.componentChips[wire.childChipIndex]
-                                 .outputPins[wire.childChipInputIndex]
-                                 .pinName;
+                    .outputPins[wire.childChipInputIndex]
+                    .pinName;
             }
-            int wireIndex = Array.FindIndex(loadedChipData.wires, w => w.startPin.pinName == startPinName && w.endPin.pinName == endPinName);
+
+            int wireIndex = Array.FindIndex(loadedChipData.wires,
+                w => w.startPin.pinName == startPinName && w.endPin.pinName == endPinName);
             if (wireIndex >= 0)
                 loadedChipData.wires[wireIndex].SetAnchorPoints(wire.anchorPoints);
         }
@@ -371,6 +382,7 @@ public static class ChipLoader
             {
                 saveData += reader.ReadLine() + "\n";
             }
+
             for (int j = 0; j < wireSaveDataLength; j++)
             {
                 wireSaveData += reader.ReadLine() + "\n";
@@ -387,7 +399,8 @@ public static class ChipLoader
                     nameCounter++;
                 } while (Array.FindIndex(allChips, c => c.Data.name == newName) >= 0);
 
-                nameUpdateLookupTable.Add(chipName, newName); chipName = newName;
+                nameUpdateLookupTable.Add(chipName, newName);
+                chipName = newName;
             }
 
             // Update name inside file if there was some names changed

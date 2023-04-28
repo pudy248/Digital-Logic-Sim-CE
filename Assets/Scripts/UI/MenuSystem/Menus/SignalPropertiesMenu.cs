@@ -6,8 +6,7 @@ using UnityEngine;
 
 public class SignalPropertiesMenu : MonoBehaviour
 {
-    [SerializeField]
-    private RectTransform propertiesUI;
+    [SerializeField] private RectTransform propertiesUI;
     public Vector2 propertiesHeightMinMax;
 
     //fuctionality
@@ -22,15 +21,16 @@ public class SignalPropertiesMenu : MonoBehaviour
     private void Awake()
     {
         propertiesUI = (RectTransform)transform.GetChild(0);
-        //GetComponentInChildren<Canvas>().worldCamera = Camera.main;
     }
+
     // Start is called before the first frame update
     void Start()
     {
         deleteButton.onClick.AddListener(Delete);
-       // deleteButton.onClick.AddListener(MenuManager.instance.CloseMenu);
         modeDropdown.onValueChanged.AddListener(OnValueDropDownChange);
-        MenuManager.instance.RegisterFinalizer(MenuType.SignalPropertiesMenu,OnCloseUI);
+        MenuManager.instance.RegisterFinalizer(MenuType.SignalPropertiesMenu, OnCloseUI);
+        nameField.onSelect.AddListener((_) => DisableDeleteCommand());
+        nameField.onDeselect.AddListener((_) => EnableDeleteCommand());
     }
 
     public void SetActive(bool b)
@@ -42,18 +42,20 @@ public class SignalPropertiesMenu : MonoBehaviour
     public void SetUpUI(SignalInteraction signalInteraction)
     {
         SetActive(true);
+        
         nameField.text = signalInteraction.SignalName;
-        nameField.Select();
         nameField.caretPosition = nameField.text.Length;
+
         twosComplementToggle.gameObject.SetActive(signalInteraction.IsGroup);
         twosComplementToggle.isOn = signalInteraction.UseTwosComplement;
         modeDropdown.gameObject.SetActive(!signalInteraction.IsGroup);
         modeDropdown.SetValueWithoutNotify((int)signalInteraction.WireType);
         SignalInteraction = signalInteraction;
 
-        var SizeDelta = new Vector2(propertiesUI.sizeDelta.x, (signalInteraction.IsGroup) ?
-            propertiesHeightMinMax.y : propertiesHeightMinMax.x);
+        var SizeDelta = new Vector2(propertiesUI.sizeDelta.x,
+            (signalInteraction.IsGroup) ? propertiesHeightMinMax.y : propertiesHeightMinMax.x);
         propertiesUI.sizeDelta = SizeDelta;
+        
 
         SetPosition(signalInteraction.GroupCenter, signalInteraction.EditorInterfaceType);
     }
@@ -67,8 +69,10 @@ public class SignalPropertiesMenu : MonoBehaviour
 
     private void SetPosition(Vector3 centre, ChipInterfaceEditor.EditorInterfaceType editorInterfaceType)
     {
-        float propertiesUIX = ScalingManager.propertiesUIX * (editorInterfaceType == ChipInterfaceEditor.EditorInterfaceType.Input ? 1 : -1);
-        propertiesUI.transform.position = new Vector3(centre.x + propertiesUIX, centre.y, propertiesUI.transform.position.z);
+        float propertiesUIX = ScalingManager.PropertiesUIX *
+                              (editorInterfaceType == ChipInterfaceEditor.EditorInterfaceType.Input ? 1 : -1);
+        propertiesUI.transform.position =
+            new Vector3(centre.x + propertiesUIX, centre.y, propertiesUI.transform.position.z);
     }
 
 
@@ -88,6 +92,7 @@ public class SignalPropertiesMenu : MonoBehaviour
         UnregisterSignalGroup(SignalInteraction);
         MenuManager.instance.CloseMenu();
     }
+
     void OnValueDropDownChange(int mode)
     {
         if (SignalInteraction != null)
@@ -99,9 +104,22 @@ public class SignalPropertiesMenu : MonoBehaviour
         signalInteraction.OnDragig += SetPosition;
         signalInteraction.OnDeleteInteraction += DeleteFinalizer;
     }
-    public void UnregisterSignalGroup(SignalInteraction signalInteraction)
+
+    private void UnregisterSignalGroup(SignalInteraction signalInteraction)
     {
         signalInteraction.OnDragig -= SetPosition;
         signalInteraction.OnDeleteInteraction -= DeleteFinalizer;
+    }
+
+    private void DisableDeleteCommand()
+    {
+        if (SignalInteraction == null) return;
+        SignalInteraction.SilenceDeleteCommand();
+    }
+
+    private void EnableDeleteCommand()
+    {
+        if (SignalInteraction == null) return;
+        SignalInteraction.EnableDeleteCommand();
     }
 }

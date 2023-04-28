@@ -1,7 +1,9 @@
 using System.Drawing;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using Core;
 using UnityEngine;
 using Color = UnityEngine.Color;
 using Debug = UnityEngine.Debug;
@@ -13,6 +15,21 @@ public class DisplayScreen : BuiltinChip
     private string editCoords;
     Texture2D texture;
     int[] texCoords;
+    
+    public override void Init()
+    {
+        base.Init();
+        ChipType = ChipType.Miscellaneous;
+        PackageGraphicData = new PackageGraphicData()
+        {
+            PackageColour = new Color(82, 17, 78, 255),
+        };
+        inputPins = new List<Pin>(12);
+        outputPins = new List<Pin>();
+        chipName = "DISP8";
+        
+    }
+    
 
     public static Texture2D CreateSolidTexture2D(Color color, int width, int height = -1) {
         if(height == -1) {

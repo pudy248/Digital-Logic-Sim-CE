@@ -1,10 +1,29 @@
 using System.Collections;
 using System.Collections.Generic;
+using Core;
 using DLS.Simulation;
 using UnityEngine;
 using TMPro;
 public class Clock : BuiltinChip
 {
+    
+    public override void Init()
+    {
+        base.Init();
+        ChipType = ChipType.Miscellaneous;
+        PackageGraphicData = new PackageGraphicData()
+        {
+            PackageColour = new Color(185, 62, 62, 255),
+            OverrideWidthAndHeight = true,
+            Height = 1.2f,
+            Width = 1.2f
+        };
+        inputPins = new List<Pin>(0);
+        outputPins = new List<Pin>(1);
+        chipName = "CLOCK";
+    }
+
+    
     private WaitForSeconds Waiter;
     [SerializeField]
     private float _hz = 1f;
