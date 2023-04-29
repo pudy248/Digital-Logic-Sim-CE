@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using DLS.Simulation;
+using UI.ThemeSystem;
 using UnityEngine;
 
-public class WireDisplay : MonoBehaviour
+public class WireDisplay : MonoBehaviour, IThemeSettable
 {
     LineRenderer LineRenderer;
     EdgeCollider2D WireCollider;
@@ -33,17 +34,17 @@ public class WireDisplay : MonoBehaviour
     {
         LineRenderer = GetComponent<LineRenderer>();
         WireCollider = GetComponentInParent<EdgeCollider2D>();
-        
+
         mat = LineRenderer.material;
         mat.color = editCol;
-        
+
         RegisterEvent();
     }
 
 
     private void Start()
     {
-        _signalPalette = UIThemeManager.Palette;
+        _signalPalette = ThemeManager.Palette;
         CurrentTheme = _signalPalette.GetDefaultTheme();
         CurrentStatusColor = CurrentTheme.Low;
 
@@ -54,24 +55,34 @@ public class WireDisplay : MonoBehaviour
     private void RegisterEvent()
     {
         var wire = GetComponentInParent<Wire>(true);
-        wire.OnSelection += SelectApparence;
+        wire.OnSelection += () =>
+        {
+            SelectApparence();
+
+        };
         wire.OnDeSelection += NormalApparence;
         wire.OnWireChange += UpdateSmoothedLine;
         wire.OnPlacing += () =>
         {
-            if(CurrentTheme != null)
-                mat.color = CurrentTheme.GetColour(PinState.LOW);
-            else
-            {
-                _signalPalette = UIThemeManager.Palette;
-                CurrentTheme = _signalPalette.GetDefaultTheme();
-                mat.color = CurrentTheme.GetColour(PinState.LOW);
-            }
+            UpdateColor();
             Placed = true;
             NormalApparence();
             wire.startPin.OnStateChange += SetStatusColor;
         };
     }
+
+    private void UpdateColor()
+    {
+        if (CurrentTheme != null)
+            mat.color = CurrentTheme.GetColour(PinState.LOW);
+        else
+        {
+            _signalPalette = ThemeManager.Palette;
+            CurrentTheme = _signalPalette.GetDefaultTheme();
+            mat.color = CurrentTheme.GetColour(PinState.LOW);
+        }
+    }
+
 
     private Color CurrentStatusColor;
 
@@ -94,7 +105,6 @@ public class WireDisplay : MonoBehaviour
     {
         SetUpThickness(ScalingManager.WireThickness * thicknessMultiplier);
         mat.color = IsSimulationActive ? CurrentStatusColor : CurrentTheme.Low;
-        ;
     }
 
     private void SetUpThickness(float thickness)
@@ -178,5 +188,11 @@ public class WireDisplay : MonoBehaviour
     {
         depth = numWires * 0.01f;
         transform.localPosition = Vector3.forward * depth;
+    }
+
+    public void SetTheme(Palette.VoltageColour voltageColour)
+    {
+        CurrentTheme = voltageColour;
+        UpdateColor();
     }
 }

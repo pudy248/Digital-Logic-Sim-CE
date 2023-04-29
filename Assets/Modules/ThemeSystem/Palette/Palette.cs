@@ -15,7 +15,7 @@ public class Palette : ScriptableObject
     [SerializeField] int defaultIndex;
 
 
-    [SerializeField] VoltageColour[] voltageColours;
+    [SerializeField] public VoltageColour[] voltageColours;
     public ReadOnlyCollection<VoltageColour> Colours => new(voltageColours);
     public VoltageColour GetDefaultTheme() => voltageColours[defaultIndex];
 

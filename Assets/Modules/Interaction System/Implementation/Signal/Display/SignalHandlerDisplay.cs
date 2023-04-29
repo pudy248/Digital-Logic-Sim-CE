@@ -55,22 +55,22 @@ namespace Interaction.Display
 
         private void ChangeHandleColor(HandleState handleState = HandleState.Default)
         {
-            HadleTheme materialReference = UIThemeManager.HadleTheme;
+            var materialReference = ThemeManager.Palette.PinInteractionPalette;
             Material selectedMat;
             switch (handleState)
             {
                 case HandleState.Highlighted:
-                    selectedMat = materialReference.HighlightedHandleMat;
+                    HandlerRender.material.color = materialReference.HighlightedHandleCol;
                     break;
                 case HandleState.Focused:
-                    selectedMat = materialReference.FocusedHandle;
+                    HandlerRender.material.color = materialReference.FocusedHandleCol;
                     break;
                 default:
-                    selectedMat = materialReference.HandleMat;
+                    HandlerRender.material.color = materialReference.handleCol;
                     break;
             }
 
-            HandlerRender.material = selectedMat;
+            // HandlerRender.material = selectedMat;
         }
     }
 }

@@ -258,7 +258,6 @@ namespace Interaction
 
         void OpenPropertyMenu()
         {
-            MenuManager.instance.OpenMenu(MenuType.SignalPropertiesMenu);
             MenuManager.instance.signalPropertiesMenu.SetUpUI(this);
         }
 

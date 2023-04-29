@@ -40,3 +40,18 @@ public static class TransformEx
     }
 
 }
+
+public static class VectorEx
+{
+
+    public static Vector2 Offset(this Vector2 v,float x=0, float y=0)
+    {
+        return new Vector2(v.x+x, v.y+y);
+    }
+    
+    
+    public static Vector3 Offset(this Vector3 v,float x, float y =0,float z=0)
+    {
+        return new Vector3(v.x+x, v.y+y,v.z+z);
+    }
+}

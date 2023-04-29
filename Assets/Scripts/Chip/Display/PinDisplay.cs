@@ -9,25 +9,25 @@ public class PinDisplay : MonoBehaviour
     private Renderer renderer;
 
     // Appearance
-    Color defaultCol = Color.black;
-    private Palette _Palette;
+    private PinInteractionPalette InteractionPalette;
 
     bool IsSimActive => Simulation.instance.active;
     public static float radius => ScalingManager.PinSize;
 
     public static float IteractionFactor => 1.1f;
-    
     public static float interactionRadius => radius * IteractionFactor;
-    
+
     private void Awake()
     {
         renderer = GetComponent<Renderer>();
-        renderer.material.color = defaultCol;
+
         var Pin = GetComponentInParent<Pin>();
         // Pin.OnStateChange += UpdateColor;
-        Pin.OnInteraction += InteractionHadler;
+        Pin.OnSelection += SelectionAppearance;
+        Pin.OnDeselection += NormalAppearance;
         ScalingManager.i.OnScaleChange += UpdateScale;
     }
+
     private void OnDestroy()
     {
         ScalingManager.i.OnScaleChange -= UpdateScale;
@@ -35,13 +35,17 @@ public class PinDisplay : MonoBehaviour
 
     private void Start()
     {
-        _Palette = UIThemeManager.Palette;
+        InteractionPalette = ThemeManager.Palette.PinInteractionPalette;
+        renderer.material.color = InteractionPalette.PinDefaultColor;
         UpdateScale();
     }
 
 
-    public void UpdateScale() { transform.localScale = Vector3.one * (radius * 2); }
-    
+    private void UpdateScale()
+    {
+        transform.localScale = Vector3.one * (radius * 2);
+    }
+
     // private void UpdateColor(PinState state, Pin.WireType wireType)
     // {
     //     if (renderer == null) return;
@@ -62,24 +66,6 @@ public class PinDisplay : MonoBehaviour
     //     SetColor(newColor);
     // }
 
-
-    private void InteractionHadler(bool interaction)
-    {
-        var InteractionPalette = _Palette.PinInteractionPalette;
-        SetColor(interaction
-            ? InteractionPalette.PinHighlighte
-            : InteractionPalette.Pindefault);
-
-        if (interaction)
-        {
-            transform.localScale = Vector3.one * (interactionRadius * 2);
-        }
-        else
-        {
-            transform.localScale = Vector3.one * (radius * 2);
-        }
-    }
-
     private void SetColor(Color newColor)
     {
         var material = renderer.material;
@@ -89,5 +75,15 @@ public class PinDisplay : MonoBehaviour
         }
     }
 
+    private void SelectionAppearance()
+    {
+        transform.localScale = Vector3.one * (interactionRadius * 2);
+        SetColor(InteractionPalette.PinHighlighte);
+    }
 
+    private void NormalAppearance()
+    {
+        transform.localScale = Vector3.one * (radius * 2);
+        SetColor(InteractionPalette.PinDefaultColor);
+    }
 }

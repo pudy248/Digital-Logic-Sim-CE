@@ -1,5 +1,6 @@
 ﻿using System;
 using DLS.Simulation;
+using UI.ThemeSystem;
 using UnityEngine;
 using UnityEngine.Serialization;
 using static Pin;
@@ -7,7 +8,7 @@ using static Pin;
 namespace Interaction.Display
 {
     [RequireComponent(typeof(ChipSignal))]
-    public class SignalDisplay : MonoBehaviour
+    public class SignalDisplay : MonoBehaviour, IThemeSettable
     {
         public Palette signalPalette;
 
@@ -22,7 +23,7 @@ namespace Interaction.Display
 
         private void Awake()
         {
-            signalPalette = UIThemeManager.Palette;
+            signalPalette = ThemeManager.Palette;
             CurrentTheme = signalPalette.GetDefaultTheme();
 
             var e = GetComponent<ChipSignal>();
@@ -35,10 +36,15 @@ namespace Interaction.Display
             Interactable = interactable;
         }
 
+        private WireType WireType;
+        private PinState State;
+
         private void DrawSignals(WireType wireType = WireType.Simple, PinState state = PinState.LOW)
         {
+            WireType = wireType;
+            State = state;
             if (!indicatorRenderer) return;
-            
+
             if (Interactable)
             {
                 indicatorRenderer.material.color = CurrentTheme.GetColour(state, wireType);
@@ -49,6 +55,12 @@ namespace Interaction.Display
                 pinRenderer.material.color = signalPalette.nonInteractableCol;
                 wireRenderer.material.color = signalPalette.nonInteractableCol;
             }
+        }
+
+        public void SetTheme(Palette.VoltageColour voltageColour)
+        {
+            CurrentTheme = voltageColour;
+            DrawSignals(WireType, State);
         }
     }
 }

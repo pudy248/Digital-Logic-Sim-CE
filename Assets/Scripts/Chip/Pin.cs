@@ -6,7 +6,8 @@ using UnityEngine;
 public class Pin : MonoBehaviour
 {
     public event Action<PinState,WireType> OnStateChange;
-    public event Action<bool> OnInteraction; 
+    public event Action OnSelection; 
+    public event Action OnDeselection; 
 
     public enum WireType { Simple, Bus4, Bus8, Bus16, Bus32 }
     public enum PinType { ChipInput, ChipOutput }
@@ -135,16 +136,12 @@ public class Pin : MonoBehaviour
 
     public void MouseEnter()
     {
-        NotifyInteraction(true);
+        OnSelection?.Invoke();
     }
 
     public void MouseExit()
     {
-        NotifyInteraction(false);
+       OnDeselection?.Invoke();
     }
 
-    private void NotifyInteraction(bool interact) 
-    {
-        OnInteraction?.Invoke(interact);
-    }
 }

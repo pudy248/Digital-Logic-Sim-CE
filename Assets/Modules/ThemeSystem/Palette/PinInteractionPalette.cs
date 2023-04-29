@@ -6,13 +6,13 @@ public class PinInteractionPalette : ScriptableObject
 {
     [Header("Signal Handler")]
     public Color handleCol;
-    public Color highlightedHandleCol;
+    [FormerlySerializedAs("highlightedHandleCol")] public Color HighlightedHandleCol;
     public Color FocusedHandleCol;
 
     
     [Header("PIN")]
     public Color PinHighlighte;
-    public Color Pindefault;
+    [FormerlySerializedAs("Pindefault")] public Color PinDefaultColor;
     
     
     [Header("Wire")]

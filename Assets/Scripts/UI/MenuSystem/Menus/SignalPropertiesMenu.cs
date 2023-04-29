@@ -58,6 +58,8 @@ public class SignalPropertiesMenu : MonoBehaviour
         
 
         SetPosition(signalInteraction.GroupCenter, signalInteraction.EditorInterfaceType);
+
+        MenuManager.instance.OpenMenu(MenuType.SignalPropertiesMenu);
     }
 
     private void OnCloseUI()

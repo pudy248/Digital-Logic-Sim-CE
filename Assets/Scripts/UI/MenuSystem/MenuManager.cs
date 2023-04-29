@@ -19,7 +19,8 @@ public enum MenuType
     ClockMenu = 5,
     EditFolderMenu = 6,
     EEPROMMenu = 7,
-    SignalPropertiesMenu = 8
+    SignalPropertiesMenu = 8,
+    ThemeChangerMenu = 9
 };
 
 public class MenuManager : MonoBehaviour
@@ -43,8 +44,8 @@ public class MenuManager : MonoBehaviour
     EEPROMMenu EEPROMMenu;
     EditChipMenu editChipMenu;
 
-    [FormerlySerializedAs("PinPropertiesMenu")] [HideInInspector]
     public SignalPropertiesMenu signalPropertiesMenu;
+    public ThemeChangerMenu themeChangerMenu;
 
 
     void Awake()
@@ -58,6 +59,7 @@ public class MenuManager : MonoBehaviour
         EEPROMMenu = FindObjectOfType<EEPROMMenu>(true);
         editChipMenu = FindObjectOfType<EditChipMenu>(true);
         signalPropertiesMenu = FindObjectOfType<SignalPropertiesMenu>(true);
+        themeChangerMenu= FindObjectOfType<ThemeChangerMenu>(true);
 
     }
 
@@ -153,39 +155,36 @@ public class MenuManager : MonoBehaviour
         foreach (GameObject obj in InputHelper.GetUIObjectsUnderMouse())
         {
             ButtonText buttonText = obj.GetComponent<ButtonText>();
-            if (buttonText != null)
-            {
-                editChipMenu.EditChipInit(buttonText.buttonText.text);
-                OpenedMenu.transform.position = new Vector3(obj.transform.position.x, OpenedMenu.transform.position.y,
-                    OpenedMenu.transform.position.z);
-                RectTransform rect = OpenedMenu.GetComponent<RectTransform>();
-                rect.anchoredPosition =
-                    new Vector2(Mathf.Clamp(rect.anchoredPosition.x, -800, 800), rect.anchoredPosition.y);
-                break;
-            }
+            if (buttonText == null) continue;
+            
+            editChipMenu.EditChipInit(buttonText.buttonText.text);
+            OpenedMenu.transform.position = new Vector3(obj.transform.position.x, OpenedMenu.transform.position.y,
+                OpenedMenu.transform.position.z);
+            RectTransform rect = OpenedMenu.GetComponent<RectTransform>();
+            rect.anchoredPosition =
+                new Vector2(Mathf.Clamp(rect.anchoredPosition.x, -800, 800), rect.anchoredPosition.y);
+            break;
         }
     }
 
     void SetClockMenuPosition()
     {
         var Clock = InputHelper.GetObjectUnderMouse2D(1 << LayerMask.NameToLayer("Chip")).GetComponent<Clock>();
-        if (Clock != null)
-        {
-            ClockMenu.SetClockToEdit(Clock);
-            OpenedMenu.transform.position = new Vector3(Clock.transform.position.x, Clock.transform.position.y - 2,
-                OpenedMenu.transform.position.z);
-        }
+        if (Clock == null) return;
+        
+        ClockMenu.SetClockToEdit(Clock);
+        OpenedMenu.transform.position = new Vector3(Clock.transform.position.x, Clock.transform.position.y - 2,
+            OpenedMenu.transform.position.z);
     }
 
     void SetEEPROMMenuPosition()
     {
         var EEPROM = InputHelper.GetObjectUnderMouse2D(1 << LayerMask.NameToLayer("Chip")).GetComponent<EEPROM>();
-        if (EEPROM != null)
-        {
-            EEPROMMenu.SetEEPROMToEdit(EEPROM);
-            OpenedMenu.transform.position = new Vector3(EEPROM.transform.position.x, EEPROM.transform.position.y - 2,
-                OpenedMenu.transform.position.z);
-        }
+        if (EEPROM == null) return;
+        
+        EEPROMMenu.SetEEPROMToEdit(EEPROM);
+        OpenedMenu.transform.position = new Vector3(EEPROM.transform.position.x, EEPROM.transform.position.y - 2,
+            OpenedMenu.transform.position.z);
     }
 
 

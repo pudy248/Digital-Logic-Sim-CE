@@ -1,17 +1,23 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Interaction.Display;
 using TMPro;
 using UnityEngine;
 
 public class PinAndWireInteraction : Interactable
 {
-
     public event System.Action onConnectionChanged;
     public event System.Action<Pin> onMouseOverPin;
     public event System.Action<Pin> onMouseExitPin;
 
-    public enum State { None, PlacingWire, PasteWires }
+    public enum State
+    {
+        None,
+        PlacingWire,
+        PasteWires
+    }
+
     public LayerMask pinMask;
     public LayerMask wireMask;
     public Transform wireHolder;
@@ -20,7 +26,7 @@ public class PinAndWireInteraction : Interactable
     State _currentState;
     Pin pinUnderMouse;
     Pin wireStartPin;
-    Wire   wireToPlace;
+    Wire wireToPlace;
     Wire highlightedWire;
     Dictionary<Pin, Wire> wiresByChipInputPin;
     public List<Wire> allWires { get; private set; }
@@ -31,8 +37,8 @@ public class PinAndWireInteraction : Interactable
 
     List<Wire> wiresToPaste;
     public State CurrentState => _currentState;
-    
-    
+
+
     float PinRadius => PinDisplay.radius / 4;
     float PinInteraction => PinRadius * PinDisplay.IteractionFactor;
 
@@ -45,7 +51,7 @@ public class PinAndWireInteraction : Interactable
     }
 
 
-    public void Init(ChipInteraction chipInteraction, ChipInterfaceEditor inputEditor,ChipInterfaceEditor outputEditor)
+    public void Init(ChipInteraction chipInteraction, ChipInterfaceEditor inputEditor, ChipInterfaceEditor outputEditor)
     {
         this.chipInteraction = chipInteraction;
         this.inputEditor = inputEditor;
@@ -60,12 +66,13 @@ public class PinAndWireInteraction : Interactable
         var mouseOverUI = InputHelper.MouseOverUIObject();
 
         if (mouseOverUI) return;
-        
+
         HandlePinHighlighting();
         switch (_currentState)
         {
             case State.None:
-                 HandleWireHighlighting();
+
+                HandleWireHighlighting();
                 HandleWireCreation();
                 break;
             case State.PlacingWire:
@@ -93,17 +100,19 @@ public class PinAndWireInteraction : Interactable
             wiresByChipInputPin.Add(newWire.ChipInputPin, newWire);
             wiresToPaste.Add(newWire);
         }
+
         _currentState = State.PasteWires;
     }
 
-    
+
     public Wire CreateAndLoadWire(Pin connectedPin, Pin pin)
     {
         var e = Instantiate(wirePrefab);
-        e.Connect(connectedPin,pin);
+        e.Connect(connectedPin, pin);
         LoadWire(e);
         return e;
     }
+
     public void LoadWire(Wire wire)
     {
         wire.transform.parent = wireHolder;
@@ -115,7 +124,7 @@ public class PinAndWireInteraction : Interactable
     {
         List<Pin> pins = new List<Pin>();
         pins.AddRange(chipInteraction.visiblePins);
-        
+
         pins.AddRange(inputEditor.GetAllPin());
         pins.AddRange(outputEditor.GetAllPin());
         return pins;
@@ -128,10 +137,13 @@ public class PinAndWireInteraction : Interactable
         {
             if (highlightedWire)
                 highlightedWire.SetSelectionState(false);
-            
+
             highlightedWire = wireUnderMouse.GetComponent<Wire>();
             highlightedWire.SetSelectionState(true);
+            if (!Input.GetMouseButtonDown(1)) return;
 
+            var e = highlightedWire.GetComponentInChildren<WireDisplay>(true);
+            MenuManager.instance.themeChangerMenu.OpenUI(e);
         }
         else if (highlightedWire)
         {
@@ -141,12 +153,11 @@ public class PinAndWireInteraction : Interactable
     }
 
 
-
     void HandleWirePlacement()
     {
         // Cancel placing wire
         if (InputHelper.AnyOfTheseKeysDown(KeyCode.Escape, KeyCode.Backspace,
-                                           KeyCode.Delete) || Input.GetMouseButtonDown(1))
+                KeyCode.Delete) || Input.GetMouseButtonDown(1))
         {
             StopPlacingWire();
         }
@@ -185,7 +196,7 @@ public class PinAndWireInteraction : Interactable
     void HandlePasteWires()
     {
         if (InputHelper.AnyOfTheseKeysDown(KeyCode.Escape, KeyCode.Backspace,
-                                           KeyCode.Delete) || Input.GetMouseButtonDown(1))
+                KeyCode.Delete) || Input.GetMouseButtonDown(1))
         {
             foreach (Wire wire in wiresToPaste)
                 DestroyWire(wire);
@@ -202,10 +213,8 @@ public class PinAndWireInteraction : Interactable
     }
 
 
-
     void TryPlaceWire(Pin startPin, Pin endPin)
     {
-
         if (Pin.IsValidConnection(startPin, endPin))
         {
             Pin chipInputPin =
@@ -259,8 +268,8 @@ public class PinAndWireInteraction : Interactable
         // Wire can be created from a pin, or from another wire (in which case it
         // uses that wire's start pin)
         if ((!pinUnderMouse && !highlightedWire) || !RequestFocus()) return;
-        
-        
+
+
         _currentState = State.PlacingWire;
         // wirePrefab.GetComponent<Wire>().thickness =
         // ScalingManager.wireThickness * 1.5f;
@@ -283,19 +292,33 @@ public class PinAndWireInteraction : Interactable
 
     void HandlePinHighlighting()
     {
- 
         Vector2 mousePos = InputHelper.MouseWorldPos;
         Collider2D pinCollider = Physics2D.OverlapCircle(mousePos, PinInteraction - PinRadius, pinMask);
+
         if (pinCollider)
         {
             Pin newPinUnderMouse = pinCollider.GetComponent<Pin>();
-            if (pinUnderMouse == newPinUnderMouse) return;
-            
+
+
+            if (pinUnderMouse == newPinUnderMouse)
+            {
+                if (!Input.GetMouseButtonDown(1)) return;
+                var e = pinUnderMouse.GetComponentInParent<SignalDisplay>(true);
+                if (e != null)
+                {
+                    MenuManager.instance.themeChangerMenu.OpenUI(e);
+                    // MenuManager.instance.themeChangerMenu.SetPosition(e);
+                }
+                        
+                return;
+            }
+
             if (pinUnderMouse != null)
             {
                 pinUnderMouse.MouseExit();
                 onMouseExitPin?.Invoke(pinUnderMouse);
             }
+
             newPinUnderMouse.MouseEnter();
             pinUnderMouse = newPinUnderMouse;
             onMouseOverPin?.Invoke(pinUnderMouse);
@@ -303,7 +326,7 @@ public class PinAndWireInteraction : Interactable
         else
         {
             if (!pinUnderMouse) return;
-            
+
             pinUnderMouse.MouseExit();
             onMouseExitPin?.Invoke(pinUnderMouse);
             pinUnderMouse = null;
@@ -333,6 +356,7 @@ public class PinAndWireInteraction : Interactable
             wireToPlace = null;
             wireStartPin = null;
         }
+
         _currentState = State.None;
     }
 
@@ -352,8 +376,11 @@ public class PinAndWireInteraction : Interactable
 
         _currentState = State.None;
     }
-    
-    void ConnectionChanged() { onConnectionChanged?.Invoke(); }
+
+    void ConnectionChanged()
+    {
+        onConnectionChanged?.Invoke();
+    }
 
 
     public override bool CanReleaseFocus() => _currentState != State.PlacingWire && !pinUnderMouse;
@@ -371,6 +398,4 @@ public class PinAndWireInteraction : Interactable
         DestroyWire(highlightedWire);
         onConnectionChanged?.Invoke();
     }
-
-
 }
