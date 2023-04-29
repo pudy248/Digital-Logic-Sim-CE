@@ -7,7 +7,7 @@ public class ScalingManager : MonoBehaviour
 {
     public static ScalingManager i;
 
-    public static event Action OnScaleChange;
+    public event Action OnScaleChange;
     public float scale = 1f;
     public static float Scale => i.scale;
 
@@ -100,6 +100,12 @@ public class ScalingManager : MonoBehaviour
     void Awake()
     {
         i = this;
+        
+    }
+
+    private void Start()
+    {
+        Manager.instance.OnEditorClear += () => SetScale(1);
     }
 
     void Update()

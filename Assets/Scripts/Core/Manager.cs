@@ -4,8 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Core;
 using Plugin.VitoBarra.Reflection;
+using UnityEditor.UI;
 using UnityEngine;
 using UnityEngine.Serialization;
+using Object = UnityEngine.Object;
 
 public enum ChipEditorMode
 {
@@ -15,18 +17,33 @@ public enum ChipEditorMode
 
 public class Manager : MonoBehaviour
 {
-    public static ChipEditorMode chipEditorMode;
 
+    private ChipEditorMode _chipEditorMode;
+
+    public  ChipEditorMode ChipEditorMode
+    {
+        get => _chipEditorMode;
+        set
+        {
+            _chipEditorMode = value;
+            OnEditorModeChage?.Invoke(_chipEditorMode);
+        }
+    }
+
+    public event Action<ChipEditorMode> OnEditorModeChage;
     public event Action<SpawnableChip> customChipCreated;
     public event Action<SpawnableChip> customChipUpdated;
+    
+    public event Action OnEditorClear; 
 
     public ChipEditor chipEditorPrefab;
     public Wire wirePrefab;
     public Chip[] SpawnableBuiltinChips;
     public List<SpawnableChip> SpawnableCustomChips;
+    
     [FormerlySerializedAs("UIManager")] public MenuManager menuManager;
 
-    public ChipEditor activeChipEditor;
+    private ChipEditor activeChipEditor;
     public static Manager instance;
 
     void Awake()
@@ -41,8 +58,6 @@ public class Manager : MonoBehaviour
         SpawnableCustomChips = new List<SpawnableChip>();
         activeChipEditor = FindObjectOfType<ChipEditor>();
         SaveSystem.LoadAllChips(this);
-
-
     }
 
     void Update()
@@ -82,10 +97,13 @@ public class Manager : MonoBehaviour
         return instance.SpawnableCustomChips.FirstOrDefault(chip => name == chip.chipName);
     }
 
-    public Chip LoadCustomChip(ChipSaveData loadedChipData)
+    public Chip LoadCustomChip(ChipInstanceHolder instanceHolder)
     {
-        if (loadedChipData == null) return null;
-        activeChipEditor.LoadFromSaveData(loadedChipData);
+        if (instanceHolder == null) return null;
+
+        activeChipEditor.Data = instanceHolder.Data;
+        ScalingManager.i.SetScale(instanceHolder.Data.scale);
+        ChipEditorOptions.instance.SetUIValues(activeChipEditor);
 
         Chip loadedChip = PackageCustomChip();
         if (loadedChip is CustomChip custom)
@@ -97,11 +115,14 @@ public class Manager : MonoBehaviour
 
     public void ViewChip(Chip chip)
     {
-        ChipSaveData chipSaveData = ChipLoader.GetChipSaveData(chip, wirePrefab, activeChipEditor);
         ClearEditor();
-        chipEditorMode = ChipEditorMode.Update;
-        menuManager.SetEditorMode(chipEditorMode, chipSaveData.Data.name);
-        activeChipEditor.LoadFromSaveData(chipSaveData);
+        ChipEditorMode = ChipEditorMode.Update;
+        ChipInstanceHolder chipInstanceHolder = ChipLoader.GetChipInstanceData(chip, activeChipEditor);
+        ActiveChipEditor.Data = chipInstanceHolder.Data;
+
+        menuManager.SetEditingChipName(chipInstanceHolder.Data.name);
+        ScalingManager.i.SetScale(chipInstanceHolder.Data.scale);
+        ChipEditorOptions.instance.SetUIValues(activeChipEditor);
     }
 
     public void SaveAndPackageChip()
@@ -113,10 +134,13 @@ public class Manager : MonoBehaviour
 
     public void UpdateChip()
     {
-        Chip updatedChip = TryPackageAndReplaceChip(activeChipEditor.Data.name);
+        SpawnableChip updatedChip =
+            ChipPackageSpawner.i.TryPackageAndReplaceChip(SpawnableCustomChips, activeChipEditor.Data.name);
+        customChipUpdated?.Invoke(updatedChip);
         ChipSaver.Update(activeChipEditor, updatedChip);
-        chipEditorMode = ChipEditorMode.Create;
+        ChipEditorMode = ChipEditorMode.Create;
         ClearEditor();
+        menuManager.SetEditingChipName("");
     }
 
     internal void DeleteChip(string nameBeforeChanging)
@@ -140,42 +164,29 @@ public class Manager : MonoBehaviour
         return customChip;
     }
 
-    SpawnableChip TryPackageAndReplaceChip(string original)
-    {
-        ChipPackageDisplay oldPackageDisplay = Array.Find(
-            GetComponentsInChildren<ChipPackageDisplay>(true), cp => cp.name == original);
-        if (oldPackageDisplay != null)
-        {
-            Destroy(oldPackageDisplay.gameObject);
-        }
-
-        var customChip = ChipPackageSpawner.i.GenerateCustomPackageAndChip();
-
-        int index = SpawnableCustomChips.FindIndex(c => c.chipName == original);
-
-        if (index < 0) return customChip;
-
-        SpawnableCustomChips[index] = customChip;
-        customChipUpdated?.Invoke(customChip);
-
-
-        return customChip;
-    }
-
 
     public void ResetEditor()
     {
-        chipEditorMode = ChipEditorMode.Create;
-        menuManager.SetEditorMode(chipEditorMode);
+        ChipEditorMode = ChipEditorMode.Create;
         ClearEditor();
     }
 
-    void ClearEditor()
+    public GameObject ImplamentationHolder;
+
+    public void ClearEditor()
     {
         if (activeChipEditor)
         {
+            // if (activeChipEditor.gameObject.transform.childCount > 2)
+            // {
+            //     var ImplementationHolder = activeChipEditor.gameObject.transform.GetChild(2).gameObject;
+            //     Destroy(ImplementationHolder);
+            // }
+            //
+            // activeChipEditor.chipImplementationHolder = Instantiate(ImplamentationHolder, activeChipEditor.gameObject.transform).transform;
+            // activeChipEditor.Data = new ChipData();
+
             Destroy(activeChipEditor.gameObject);
-            menuManager.SetEditorMode(chipEditorMode, menuManager.ChipName.text);
         }
 
         activeChipEditor =
@@ -184,10 +195,10 @@ public class Manager : MonoBehaviour
         activeChipEditor.inputsEditor.CurrentEditor = activeChipEditor;
         activeChipEditor.outputsEditor.CurrentEditor = activeChipEditor;
 
-        Simulation.instance.ResetSimulation();
-        ScalingManager.i.SetScale(1);
+        OnEditorClear?.Invoke();
         ChipEditorOptions.instance.SetUIValues(activeChipEditor);
     }
+
 
     public void ChipButtonHanderl(Chip chip)
     {
@@ -199,9 +210,9 @@ public class Manager : MonoBehaviour
 
     public void LoadMainMenu()
     {
-        if (chipEditorMode == ChipEditorMode.Update)
+        if (ChipEditorMode == ChipEditorMode.Update)
         {
-            chipEditorMode = ChipEditorMode.Create;
+            ChipEditorMode = ChipEditorMode.Create;
             ClearEditor();
         }
         else

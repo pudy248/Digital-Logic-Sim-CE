@@ -35,17 +35,22 @@ public class Simulation : MonoBehaviour
     {
         instance = this;
         simulationFrame = 0;
+
+    }
+
+    private void Start()
+    {
+        Manager.instance.OnEditorClear += ResetSimulation;
     }
 
     void Update()
     {
         // If simulation is off StepSimulation is not executed.
-        if (Time.time - lastStepTime > minStepTime && active)
-        {
-            lastStepTime = Time.time;
-            simulationFrame++;
-            StepSimulation();
-        }
+        if (!(Time.time - lastStepTime > minStepTime) || !active) return;
+        
+        lastStepTime = Time.time;
+        simulationFrame++;
+        StepSimulation();
     }
 
     void StepSimulation()

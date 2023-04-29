@@ -11,15 +11,15 @@ public class SavedWire
     public int childChipInputIndex;
     public Vector2[] anchorPoints;
 
-    public SavedWire(ChipSaveData chipSaveData, Wire wire)
+    public SavedWire(ChipInstanceHolder chipInstanceHolder, Wire wire)
     {
         Pin parentPin = wire.startPin;
         Pin childPin = wire.endPin;
 
-        parentChipIndex = chipSaveData.ComponentChipIndex(parentPin.chip);
+        parentChipIndex = chipInstanceHolder.ComponentChipIndex(parentPin.chip);
         parentChipOutputIndex = parentPin.index;
 
-        childChipIndex = chipSaveData.ComponentChipIndex(childPin.chip);
+        childChipIndex = chipInstanceHolder.ComponentChipIndex(childPin.chip);
         childChipInputIndex = childPin.index;
 
         anchorPoints = wire.anchorPoints.ToArray();

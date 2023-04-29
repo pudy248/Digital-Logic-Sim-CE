@@ -16756,9 +16756,9 @@ Camera:
   m_FocalLength: 50
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.035054594
+    x: 0.04529035
     y: 0
-    width: 0.9298908
+    width: 0.9094193
     height: 1
   near clip plane: 0.3
   far clip plane: 1500
@@ -24859,7 +24859,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ad45f0de49c4593b0b812268834be8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  chipPackageTemplate: {fileID: 3466065292472579655, guid: e20c939cb564d41189a06c73aa43197e,
+  chipPackageDisplayTemplate: {fileID: 3466065292472579655, guid: e20c939cb564d41189a06c73aa43197e,
     type: 3}
   chipPinPrefab: {fileID: 8774343771143846598, guid: 3f5693e72562648d19f39eace0ccffd6,
     type: 3}
@@ -28074,33 +28074,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1661244079}
   m_CullTransparentMesh: 0
---- !u!1 &1661330625 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4750937598926047529, guid: d48b4f02647794ac2aba95960c3d59ab,
-    type: 3}
-  m_PrefabInstance: {fileID: 3008879100212563310}
-  m_PrefabAsset: {fileID: 0}
---- !u!50 &1661330630
-Rigidbody2D:
-  serializedVersion: 4
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1661330625}
-  m_BodyType: 2
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 1
-  m_LinearDrag: 0
-  m_AngularDrag: 0.05
-  m_GravityScale: 1
-  m_Material: {fileID: 0}
-  m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 0
 --- !u!1 &1671832934
 GameObject:
   m_ObjectHideFlags: 0
@@ -30572,19 +30545,20 @@ MonoBehaviour:
   - {fileID: 115530211412355723, guid: 65fccb77ce2e8b141be2883a450bd104, type: 3}
   - {fileID: 7051442128332312624, guid: 6cc2f15dbedacd24c91ce8f6e9208840, type: 3}
   - {fileID: 6632021948943085525, guid: 43f8221980e4d3d40b32a6a6e2454ab0, type: 3}
-  - {fileID: 7051442128332312624, guid: 584a382f69ef0ca45a8606c5819b52cb, type: 3}
+  - {fileID: 6632021948943085525, guid: a426d7413e45bd24a864f5c75acba6f7, type: 3}
+  - {fileID: 7051442128332312624, guid: a07403e5e3f84c64185ea446afe08be9, type: 3}
   - {fileID: 6632021948943085525, guid: d1a4d6dbed2e8cf42bbde6adfea7e79c, type: 3}
-  - {fileID: 7051442128332312624, guid: 3cb180636ef96384982e75ebf81ca08c, type: 3}
-  - {fileID: 6632021948943085525, guid: e7e9803706278f642855ed313fa69546, type: 3}
-  - {fileID: 7051442128332312624, guid: a8e6bd52baa1f8a40927d74a08f4f406, type: 3}
-  - {fileID: 6632021948943085525, guid: f6debe3209e55ab4f9d299c0728c8b55, type: 3}
+  - {fileID: 7051442128332312624, guid: cc1986baca95ce848a2e2c8425f74299, type: 3}
+  - {fileID: 6632021948943085525, guid: e2eed85b5d6d34341a73b03dbf2ae97a, type: 3}
+  - {fileID: 7051442128332312624, guid: 584a382f69ef0ca45a8606c5819b52cb, type: 3}
   - {fileID: 286808261455957341, guid: 184fc6762f746804aa23328309645795, type: 3}
   - {fileID: -6260489656382857768, guid: 99de4470dbba3194e9450daa3e1073ad, type: 3}
   - {fileID: 4830304959902391766, guid: 695cc132cf9c8b94e98d0b833c5b1d06, type: 3}
   - {fileID: 7079573870702136499, guid: 00cac01c885936f4ab0c9ef122b43f65, type: 3}
   SpawnableCustomChips: []
   menuManager: {fileID: 1579521357}
-  activeChipEditor: {fileID: 0}
+  ImplamentationHolder: {fileID: 8420799776603607126, guid: 4888781f81850b941b8a9dcc2b7c90e5,
+    type: 3}
 --- !u!4 &1830893909
 Transform:
   m_ObjectHideFlags: 0

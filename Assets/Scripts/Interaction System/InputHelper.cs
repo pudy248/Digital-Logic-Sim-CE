@@ -38,7 +38,8 @@ public static class InputHelper
 
     public static bool CompereTagObjectUnderMouse2D(string tag, LayerMask mask)
     {
-        return GetObjectUnderMouse2D(mask).CompareTag(tag);
+        var e = GetObjectUnderMouse2D(mask);
+        return e != null && e.CompareTag(tag);
     }
 
     public static List<GameObject> GetUIObjectsUnderMouse()

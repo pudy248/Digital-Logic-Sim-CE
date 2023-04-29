@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using DLS.Simulation;
 using UnityEngine;
 
@@ -7,24 +8,24 @@ public class WireDisplay : MonoBehaviour
 {
     LineRenderer LineRenderer;
     EdgeCollider2D WireCollider;
-    
+
     Palette.VoltageColour CurrentTheme;
-    
-    
+
+
     const float thicknessMultiplier = 0.1f;
     Material mat;
-    public Material simpleMat;
     bool selected;
-    
+
     public Color editCol;
     Palette _signalPalette;
     List<Vector2> drawPoints = new List<Vector2>();
-    
-    
+
+
     public float curveSize = 0.3f;
     public int resolution = 20;
     public bool Placed;
-    
+    float depth;
+
     bool IsSimulationActive => Simulation.instance.active;
 
 
@@ -32,41 +33,57 @@ public class WireDisplay : MonoBehaviour
     {
         LineRenderer = GetComponent<LineRenderer>();
         WireCollider = GetComponentInParent<EdgeCollider2D>();
+        
+        mat = LineRenderer.material;
+        mat.color = editCol;
+        
+        RegisterEvent();
     }
+
 
     private void Start()
     {
         _signalPalette = UIThemeManager.Palette;
         CurrentTheme = _signalPalette.GetDefaultTheme();
         CurrentStatusColor = CurrentTheme.Low;
-        
-        LineRenderer.material = simpleMat;
-        mat = LineRenderer.material;
-        SelectApparence();
-        mat.color = editCol;
-        
-        var e = GetComponentInParent<Wire>();
-        e.OnSelection += SelectApparence;
-        e.OnDeSelection += NormalApparence;
-        e.OnWireChange += UpdateSmoothedLine;
-        e.OnPlacing += () =>
+
+
+        NormalApparence();
+    }
+
+    private void RegisterEvent()
+    {
+        var wire = GetComponentInParent<Wire>(true);
+        wire.OnSelection += SelectApparence;
+        wire.OnDeSelection += NormalApparence;
+        wire.OnWireChange += UpdateSmoothedLine;
+        wire.OnPlacing += () =>
         {
-            mat.color = CurrentTheme.GetColour(PinState.LOW);
+            if(CurrentTheme != null)
+                mat.color = CurrentTheme.GetColour(PinState.LOW);
+            else
+            {
+                _signalPalette = UIThemeManager.Palette;
+                CurrentTheme = _signalPalette.GetDefaultTheme();
+                mat.color = CurrentTheme.GetColour(PinState.LOW);
+            }
             Placed = true;
+            NormalApparence();
+            wire.startPin.OnStateChange += SetStatusColor;
         };
-        e.startPin.OnStateChange += SetStatusColor;
     }
 
     private Color CurrentStatusColor;
 
-    void SetStatusColor(PinState pinState,Pin.WireType wireType)
+    void SetStatusColor(PinState pinState, Pin.WireType wireType)
     {
-        if(!Placed) return;;
+        if (!Placed) return;
+
         CurrentStatusColor = CurrentTheme.GetColour(pinState, wireType);
-        mat.color = IsSimulationActive ?  CurrentStatusColor: CurrentTheme.Low;
+        mat.color = IsSimulationActive ? CurrentStatusColor : CurrentTheme.Low;
     }
 
-    
+
     private void SelectApparence()
     {
         SetUpThickness(ScalingManager.WireSelectedThickness * thicknessMultiplier);
@@ -76,7 +93,8 @@ public class WireDisplay : MonoBehaviour
     private void NormalApparence()
     {
         SetUpThickness(ScalingManager.WireThickness * thicknessMultiplier);
-        mat.color = IsSimulationActive ?  CurrentStatusColor: CurrentTheme.Low;;
+        mat.color = IsSimulationActive ? CurrentStatusColor : CurrentTheme.Low;
+        ;
     }
 
     private void SetUpThickness(float thickness)
@@ -103,10 +121,13 @@ public class WireDisplay : MonoBehaviour
             LineRenderer.SetPosition(i, new Vector3(localPos.x, localPos.y, -0.01f));
         }
 
+        float depthOffset = 5;
+        transform.localPosition = Vector3.forward * (depth + depthOffset);
+
         UpdateCollider();
     }
-    
-    
+
+
     void GenerateDrawPoints(List<Vector2> anchorPoints)
     {
         drawPoints.Clear();
@@ -152,7 +173,10 @@ public class WireDisplay : MonoBehaviour
 
         drawPoints.Add(anchorPoints[^1]);
     }
-    
-    
 
+    public void SetDepth(int numWires)
+    {
+        depth = numWires * 0.01f;
+        transform.localPosition = Vector3.forward * depth;
+    }
 }

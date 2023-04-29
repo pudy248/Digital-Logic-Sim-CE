@@ -54,39 +54,46 @@ public class ChipInterfaceEditor : MonoBehaviour
     private int _desiredGroupSize = 1;
 
 
-    public Dictionary<int, SignalInteraction> SignalsByID;
+    private Dictionary<int, SignalInteraction> SignalsByID= new Dictionary<int, SignalInteraction>();
     private SignalInteractionBuilder SignalBuilder;
 
 
     void Awake()
     {
+        
         FindObjectOfType<CreateGroup>().onGroupSizeSettingPressed += (x) => DesiredGroupSize = x;
+       
+        float BoundsTop = transform.position.y + (transform.localScale.y / 2);
+        float BoundsBottom = transform.position.y - transform.localScale.y / 2f;
+        // Handles spawning if user clicks, otherwise displays preview
+        float containerX = chipContainer.position.x +
+                           chipContainer.localScale.x / 2 *
+                           ((editorInterfaceType == EditorInterfaceType.Input) ? -1 : 1);
+
+        SignalBuilder = new SignalInteractionBuilder(SignalInteractablePref, signalHolder, OnDeleteChip, BoundsBottom,
+            BoundsTop, containerX, chipContainer.position.z, editorInterfaceType);
     }
 
     private void Start()
     {
-        SignalsByID = new Dictionary<int, SignalInteraction>();
+        ScalingManager.i.OnScaleChange += UpdateScale;
+    }
 
-        float BoundsTop = transform.position.y + (transform.localScale.y / 2);
-        float BoundsBottom = transform.position.y - transform.localScale.y / 2f;
-        SignalBuilder = new SignalInteractionBuilder(SignalInteractablePref, signalHolder, OnDeleteChip, BoundsBottom,
-            BoundsTop, editorInterfaceType);
+    private void OnDestroy()
+    {
+        ScalingManager.i.OnScaleChange -= UpdateScale;
     }
 
 
-    public void LoadSignal(InputSignal signal)
+
+    public Chip LoadSignal(InputSignal signal, float y)
     {
-        signal.transform.parent = signalHolder;
-        signal.signalName = signal.outputPins[0].pinName;
-        
-        AddSignal(signal.transform.position.y);
+        return AddSignal(y,1).Signals[0];
     }
 
-    public void LoadSignal(OutputSignal signal)
+    public Chip LoadSignal(OutputSignal signal, float y)
     {
-        signal.transform.parent = signalHolder;
-        signal.signalName = signal.inputPins[0].pinName;
-        AddSignal(signal.transform.position.y);
+        return AddSignal(y,1).Signals[0];
     }
 
 
@@ -118,11 +125,6 @@ public class ChipInterfaceEditor : MonoBehaviour
     }
 
 
-    // Handles spawning if user clicks, otherwise displays preview
-    float containerX => chipContainer.position.x +
-                        chipContainer.localScale.x / 2 *
-                        ((editorInterfaceType == EditorInterfaceType.Input) ? -1 : 1);
-
     void HandleSpawning()
     {
         if (InputHelper.MouseOverUIObject())
@@ -135,18 +137,18 @@ public class ChipInterfaceEditor : MonoBehaviour
         if (InputHelper.CompereTagObjectUnderMouse2D(ProjectTags.InterfaceMask, ProjectLayer.Default)) return;
 
 
-        AddSignal(InputHelper.MouseWorldPos.y);
+        AddSignal(InputHelper.MouseWorldPos.y, DesiredGroupSize);
+        DesiredGroupSize = 1;
 
 
         OnChipsAddedOrDeleted?.Invoke();
     }
 
-    private void AddSignal(float yPos)
+    private SignalInteraction AddSignal(float yPos, int groupSize)
     {
-        var ContaierPosition = new Vector3(containerX, yPos, chipContainer.position.z);
-        var Interactable = SignalBuilder.Build(ContaierPosition, DesiredGroupSize);
+        var Interactable = SignalBuilder.Build(yPos, groupSize);
         SignalsByID.Add(Interactable.id, Interactable.obj);
-        DesiredGroupSize = 1;
+        return  Interactable.obj;
     }
 
     public void UpdateScale()
@@ -157,8 +159,7 @@ public class ChipInterfaceEditor : MonoBehaviour
         barGraphic.localScale = new Vector3(ScalingManager.IoBarGraphicWidth, 1, 1);
         GetComponent<BoxCollider2D>().size = new Vector2(ScalingManager.IoBarGraphicWidth, 1);
 
-        foreach (var sig in SignalsByID.Values)
-            sig.UpdateScaleAndPosition();
+
     }
 
 
@@ -185,4 +186,6 @@ public class ChipInterfaceEditor : MonoBehaviour
 
         return res;
     }
+
+
 }

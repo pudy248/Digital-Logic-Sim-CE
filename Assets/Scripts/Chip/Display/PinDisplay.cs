@@ -26,7 +26,11 @@ public class PinDisplay : MonoBehaviour
         var Pin = GetComponentInParent<Pin>();
         // Pin.OnStateChange += UpdateColor;
         Pin.OnInteraction += InteractionHadler;
-        ScalingManager.OnScaleChange += UpdateScale;
+        ScalingManager.i.OnScaleChange += UpdateScale;
+    }
+    private void OnDestroy()
+    {
+        ScalingManager.i.OnScaleChange -= UpdateScale;
     }
 
     private void Start()
@@ -85,8 +89,5 @@ public class PinDisplay : MonoBehaviour
         }
     }
 
-    private void OnDestroy()
-    {
-        ScalingManager.OnScaleChange -= UpdateScale;
-    }
+
 }

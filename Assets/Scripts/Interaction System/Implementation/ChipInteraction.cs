@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using UnityEngine;
 
 public class ChipInteraction : Interactable
@@ -14,7 +15,10 @@ public class ChipInteraction : Interactable
     }
 
     public event System.Action<Chip> onDeleteChip;
+    public event System.Action onChipMovement;
 
+    public static ChipInteraction i;
+    
     public BoxCollider2D chipArea;
     public Transform chipHolder;
     public LayerMask chipMask;
@@ -53,6 +57,7 @@ public class ChipInteraction : Interactable
         MeshShapeCreator.CreateQuadMesh(ref selectionMesh);
 
         OnFocusLost += FocusLostHandler;
+        i = this;
     }
 
     public override void OrderedUpdate()
@@ -79,48 +84,14 @@ public class ChipInteraction : Interactable
         DrawSelectedChipBounds();
     }
 
-    public Pin[] UnconnectedInputPins
+    public Pin[] UnconnectedInputPins => (from chip in allChips from pin in chip.inputPins where pin.wireType == Pin.WireType.Simple && !pin.HasParent select pin).ToArray();
+
+    public Pin[] UnconnectedOutputPins => (from chip in allChips from pin in chip.outputPins where pin.childPins.Count == 0 select pin).ToArray();
+
+    public Chip LoadChip(Chip chipPref, Vector2 pos)
     {
-        get
-        {
-            List<Pin> unconnected = new List<Pin>();
-            foreach (Chip chip in allChips)
-            {
-                foreach (Pin pin in chip.inputPins)
-                {
-                    if (pin.wireType == Pin.WireType.Simple && !pin.HasParent)
-                    {
-                        unconnected.Add(pin);
-                    }
-                }
-            }
+        Chip chip = Instantiate(chipPref, pos, Quaternion.identity);
 
-            return unconnected.ToArray();
-        }
-    }
-
-    public Pin[] UnconnectedOutputPins
-    {
-        get
-        {
-            List<Pin> unconnected = new List<Pin>();
-            foreach (Chip chip in allChips)
-            {
-                foreach (Pin pin in chip.outputPins)
-                {
-                    if (pin.childPins.Count == 0)
-                    {
-                        unconnected.Add(pin);
-                    }
-                }
-            }
-
-            return unconnected.ToArray();
-        }
-    }
-
-    public void LoadChip(Chip chip)
-    {
         chip.transform.parent = chipHolder;
         allChips.Add(chip);
         visiblePins.AddRange(chip.inputPins);
@@ -129,6 +100,7 @@ public class ChipInteraction : Interactable
         {
             pin.NotifyStateChange();
         }
+        return chip;
     }
 
     public List<Chip> SelectedChips => selectedChips;
@@ -291,6 +263,7 @@ public class ChipInteraction : Interactable
                     (Vector2)selectedChipsOriginalPos[i] + deltaMouse;
                 SetDepth(selectedChips[i], dragDepth + selectedChipsOriginalPos[i].z);
             }
+            onChipMovement?.Invoke();
         }
 
         // Mouse released, so stop moving chips
@@ -440,14 +413,7 @@ public class ChipInteraction : Interactable
 
     void DrawSelectedChipBounds()
     {
-        if (SelectedChipsWithinPlacementArea())
-        {
-            selectionBoxMaterial.color = selectionBoxCol;
-        }
-        else
-        {
-            selectionBoxMaterial.color = invalidPlacementCol;
-        }
+        selectionBoxMaterial.color = SelectedChipsWithinPlacementArea() ? selectionBoxCol : invalidPlacementCol;
 
         foreach (var item in selectedChips)
         {
@@ -515,5 +481,10 @@ public class ChipInteraction : Interactable
         newChipsToPlace.Clear();
         newChipsToPaste.Clear();
         chipsToPaste.Clear();
+    }
+
+    public void NotifyMovement()
+    {
+        onChipMovement?.Invoke();
     }
 }

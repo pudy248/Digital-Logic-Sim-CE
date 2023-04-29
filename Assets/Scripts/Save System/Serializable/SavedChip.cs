@@ -20,20 +20,20 @@ public class SavedChip
     // signals, then remaining component chips
     public SavedComponentChip[] savedComponentChips;
 
-    public SavedChip(ChipSaveData chipSaveData)
+    public SavedChip(ChipInstanceHolder chipInstanceHolder)
     {
-        Data = chipSaveData.Data;
+        Data = chipInstanceHolder.Data;
 
         // Create list of (unique) names of all chips used to make this chip
-        ChipDependecies = chipSaveData.componentChips.Select(x => x.chipName)
+        ChipDependecies = chipInstanceHolder.componentChips.Select(x => x.chipName)
                                 .Distinct()
                                 .ToArray();
 
         // Create serializable chips
-        savedComponentChips = new SavedComponentChip[chipSaveData.componentChips.Length];
+        savedComponentChips = new SavedComponentChip[chipInstanceHolder.componentChips.Length];
 
-        for (int i = 0; i < chipSaveData.componentChips.Length; i++)
-            savedComponentChips[i] = new SavedComponentChip(chipSaveData, chipSaveData.componentChips[i]);
+        for (int i = 0; i < chipInstanceHolder.componentChips.Length; i++)
+            savedComponentChips[i] = new SavedComponentChip(chipInstanceHolder, chipInstanceHolder.componentChips[i]);
     }
 
     public void ValidateDefaultData()

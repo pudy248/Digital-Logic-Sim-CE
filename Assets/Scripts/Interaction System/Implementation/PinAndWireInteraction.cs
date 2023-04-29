@@ -65,8 +65,7 @@ public class PinAndWireInteraction : Interactable
         switch (_currentState)
         {
             case State.None:
-                HandleWireHighlighting();
-                //HandleWireDeletion();
+                 HandleWireHighlighting();
                 HandleWireCreation();
                 break;
             case State.PlacingWire:
@@ -97,6 +96,14 @@ public class PinAndWireInteraction : Interactable
         _currentState = State.PasteWires;
     }
 
+    
+    public Wire CreateAndLoadWire(Pin connectedPin, Pin pin)
+    {
+        var e = Instantiate(wirePrefab);
+        e.Connect(connectedPin,pin);
+        LoadWire(e);
+        return e;
+    }
     public void LoadWire(Wire wire)
     {
         wire.transform.parent = wireHolder;
@@ -194,7 +201,6 @@ public class PinAndWireInteraction : Interactable
         }
     }
 
-    public Wire GetWire(Pin childPin) => wiresByChipInputPin.ContainsKey(childPin) ? wiresByChipInputPin[childPin] : null;
 
 
     void TryPlaceWire(Pin startPin, Pin endPin)
@@ -230,16 +236,13 @@ public class PinAndWireInteraction : Interactable
     }
 
     public void DestroyConnectedWires(Pin pin)
-	{
+    {
         List<Wire> allWiresStatic = new(allWires);
-        foreach(Wire w in allWiresStatic)
-		{
-            if(w.startPin == pin || w.endPin == pin)
-			{
-                DestroyWire(w);
-			}
-		}
-	}
+        foreach (var w in allWiresStatic.Where(w => w.startPin == pin || w.endPin == pin))
+        {
+            DestroyWire(w);
+        }
+    }
 
     void DestroyWire(Wire wire)
     {
@@ -280,34 +283,30 @@ public class PinAndWireInteraction : Interactable
 
     void HandlePinHighlighting()
     {
-        
-
-        
+ 
         Vector2 mousePos = InputHelper.MouseWorldPos;
         Collider2D pinCollider = Physics2D.OverlapCircle(mousePos, PinInteraction - PinRadius, pinMask);
         if (pinCollider)
         {
             Pin newPinUnderMouse = pinCollider.GetComponent<Pin>();
-            if (pinUnderMouse != newPinUnderMouse)
-            {
-                if (pinUnderMouse != null)
-                {
-                    pinUnderMouse.MouseExit();
-                    onMouseExitPin?.Invoke(pinUnderMouse);
-                }
-                newPinUnderMouse.MouseEnter();
-                pinUnderMouse = newPinUnderMouse;
-                onMouseOverPin?.Invoke(pinUnderMouse);
-            }
-        }
-        else
-        {
-            if (pinUnderMouse)
+            if (pinUnderMouse == newPinUnderMouse) return;
+            
+            if (pinUnderMouse != null)
             {
                 pinUnderMouse.MouseExit();
                 onMouseExitPin?.Invoke(pinUnderMouse);
-                pinUnderMouse = null;
             }
+            newPinUnderMouse.MouseEnter();
+            pinUnderMouse = newPinUnderMouse;
+            onMouseOverPin?.Invoke(pinUnderMouse);
+        }
+        else
+        {
+            if (!pinUnderMouse) return;
+            
+            pinUnderMouse.MouseExit();
+            onMouseExitPin?.Invoke(pinUnderMouse);
+            pinUnderMouse = null;
         }
     }
 
@@ -337,7 +336,7 @@ public class PinAndWireInteraction : Interactable
         _currentState = State.None;
     }
 
-    public void FocusLostHandler()
+    private void FocusLostHandler()
     {
         if (pinUnderMouse)
         {
@@ -372,4 +371,6 @@ public class PinAndWireInteraction : Interactable
         DestroyWire(highlightedWire);
         onConnectionChanged?.Invoke();
     }
+
+
 }

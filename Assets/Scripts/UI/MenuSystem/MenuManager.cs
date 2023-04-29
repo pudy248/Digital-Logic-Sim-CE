@@ -42,9 +42,9 @@ public class MenuManager : MonoBehaviour
     ClockMenu ClockMenu;
     EEPROMMenu EEPROMMenu;
     EditChipMenu editChipMenu;
+
     [FormerlySerializedAs("PinPropertiesMenu")] [HideInInspector]
     public SignalPropertiesMenu signalPropertiesMenu;
-    
 
 
     void Awake()
@@ -58,6 +58,13 @@ public class MenuManager : MonoBehaviour
         EEPROMMenu = FindObjectOfType<EEPROMMenu>(true);
         editChipMenu = FindObjectOfType<EditChipMenu>(true);
         signalPropertiesMenu = FindObjectOfType<SignalPropertiesMenu>(true);
+
+    }
+
+    private void Start()
+    {
+        Manager.instance.OnEditorModeChage += SetEditorMode;
+        Manager.instance.OnEditorClear += CloseMenu;
     }
 
     public static void NewSubmitMenu(string header, string text,
@@ -107,11 +114,15 @@ public class MenuManager : MonoBehaviour
         FindObjectOfType<PinAndWireInteraction>(true).gameObject.SetActive(IsActive);
     }
 
-    public void SetEditorMode(ChipEditorMode newMode, string s = null)
+    private void SetEditorMode(ChipEditorMode newMode)
     {
         createButton.SetActive(newMode == ChipEditorMode.Create);
         updateButton.SetActive(newMode == ChipEditorMode.Update);
-        ChipName.text = newMode == ChipEditorMode.Update && s != null ? s : "";
+    }
+
+    public void SetEditingChipName(string s = null)
+    {
+        ChipName.text = s ?? "";
     }
 
     private void SetCurrentMenuState(UIMenu newMenu, MenuType menuType)
@@ -187,5 +198,10 @@ public class MenuManager : MonoBehaviour
     public void RegisterFinalizer(MenuType menuType, Action action)
     {
         Menus[menuType].RegisterFinalizer(action);
+    }
+
+    private void OnDestroy()
+    {
+        
     }
 }

@@ -6,13 +6,9 @@ using UnityEngine;
 
 public class ChipPackageDisplay : MonoBehaviour
 {
-
-
-
     public TMPro.TextMeshPro nameText;
     public Transform container;
     private SpawnableChip SpawnableChip;
-
 
 
     float PinRadius => PinDisplay.radius / 4;
@@ -21,13 +17,22 @@ public class ChipPackageDisplay : MonoBehaviour
 
     void Awake()
     {
-        SpawnableChip = GetComponent<SpawnableChip>();
-        ScalingManager.OnScaleChange += SetSizeAndSpacing;
+        ScalingManager.i.OnScaleChange += SetSizeAndSpacing;
+        Init();
+    }
 
+    private void OnDestroy()
+    {
+        ScalingManager.i.OnScaleChange -= SetSizeAndSpacing;
+    }
+
+    public void Init()
+    {
+        SpawnableChip = GetComponent<SpawnableChip>();
         SetUpDisplay();
     }
 
-    public void SetUpDisplay()
+    private void SetUpDisplay()
     {
         if (SpawnableChip == null) return;
 
@@ -53,8 +58,10 @@ public class ChipPackageDisplay : MonoBehaviour
         container.GetComponent<MeshRenderer>().material.color = dataColour;
     }
 
-    public void SetSizeAndSpacing()
+    private void SetSizeAndSpacing()
     {
+        if (SpawnableChip == null) return;
+        
         SpawnableChip chip = SpawnableChip;
         var data = chip.PackageGraphicData;
 

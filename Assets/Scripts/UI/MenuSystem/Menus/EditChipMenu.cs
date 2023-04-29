@@ -148,11 +148,10 @@ public class EditChipMenu : MonoBehaviour
 
     public void ViewChip()
     {
-        if (currentChip != null)
-        {
-            Manager.instance.ViewChip(currentChip);
-            currentChip = null;
-        }
+        if (currentChip == null) return;
+        
+        Manager.instance.ViewChip(currentChip);
+        currentChip = null;
     }
 
     public void ExportChip() { ImportExport.instance.ExportChip(currentChip); }

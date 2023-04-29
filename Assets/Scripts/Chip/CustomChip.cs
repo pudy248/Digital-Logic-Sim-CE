@@ -12,7 +12,7 @@ public class CustomChip : SpawnableChip
     public int FolderIndex = 0;
 
     [HideInInspector]
-    public Pin[] unconnectedInputs;
+    public List<Pin> unconnectedInputs = new List<Pin>();
 
     public override void Init()
     {

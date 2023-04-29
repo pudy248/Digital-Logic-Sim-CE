@@ -26,7 +26,6 @@ public class InputSignal : ChipSignal
 	public void SendSignal(PinState signal)
 	{
 		currentState = signal;
-		Debug.Log("aiuto"+name,this);
 		outputPins[0].ReceiveSignal(signal);
 		NotifyStateChange();
 	}

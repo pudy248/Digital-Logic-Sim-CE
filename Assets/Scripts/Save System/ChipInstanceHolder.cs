@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class ChipSaveData
+public class ChipInstanceHolder
 {
 
     public ChipData Data;
@@ -12,9 +12,9 @@ public class ChipSaveData
     // All wires in the chip (in case saving of wire layout is desired)
     public Wire[] wires;
 
-    public ChipSaveData() { }
+    public ChipInstanceHolder() { }
 
-    public ChipSaveData(ChipEditor chipEditor)
+    public ChipInstanceHolder(ChipEditor chipEditor)
     {
         List<Chip> componentChipList = new List<Chip>();
 
@@ -35,6 +35,8 @@ public class ChipSaveData
     
     private void SortSignalsByYPosition(List<ChipSignal> signals)
     {
+        signals.RemoveAll(x => x == null);
+
         signals.Sort((a, b) => b.transform.position.y.CompareTo(a.transform.position.y));
     }
 

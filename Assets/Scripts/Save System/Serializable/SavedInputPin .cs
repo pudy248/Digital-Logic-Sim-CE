@@ -12,12 +12,12 @@ public class SavedInputPin {
 	public bool isCylic;
 	public Pin.WireType wireType;
 
-	public SavedInputPin (ChipSaveData chipSaveData, Pin pin) {
+	public SavedInputPin (ChipInstanceHolder chipInstanceHolder, Pin pin) {
 		name = pin.pinName;
 		isCylic = pin.cyclic;
 		wireType = pin.wireType;
 		if (pin.parentPin) {
-			parentChipIndex = chipSaveData.ComponentChipIndex (pin.parentPin.chip);
+			parentChipIndex = chipInstanceHolder.ComponentChipIndex (pin.parentPin.chip);
 			parentChipOutputIndex = pin.parentPin.index;
 		} else {
 			parentChipIndex = -1;

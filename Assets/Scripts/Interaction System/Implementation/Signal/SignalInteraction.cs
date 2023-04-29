@@ -49,14 +49,26 @@ namespace Interaction
 
         private void Awake()
         {
-            DecimalDisplay = GetComponentInChildren<DecimalDisplay>();
-            DecimalDisplay.gameObject.SetActive(false);
+            DecimalDisplay = GetComponentInChildren<DecimalDisplay>(true);
+        }
+
+        private void Start()
+        {
+            ScalingManager.i.OnScaleChange += UpdateScaleAndPosition;
+        }
+
+        private void OnDestroy()
+        {
+            ScalingManager.i.OnScaleChange -= UpdateScaleAndPosition;
         }
 
         public void SetUpCreation(int _groupSize, float _boundsBottom, float _boundsTop,
             Vector3 _pinContainers, Action<Chip> _onDeleteChip,
             ChipInterfaceEditor.EditorInterfaceType _editorInterfaceType)
         {
+            if (!DecimalDisplay)
+                DecimalDisplay = GetComponentInChildren<DecimalDisplay>(true);
+
             EditorInterfaceType = _editorInterfaceType;
             GroupSize = _groupSize;
             BoundsBottom = _boundsBottom;
@@ -93,6 +105,7 @@ namespace Interaction
             RequestFocus();
         }
 
+
         private void RegisterEventToAllHandle()
         {
             foreach (var Handle in Signals.Select(x => x.GetComponentInChildren<HandleEvent>()))
@@ -125,6 +138,7 @@ namespace Interaction
         private void NotifyMovement()
         {
             OnDragig?.Invoke(GroupCenter, EditorInterfaceType);
+            ChipInteraction.i.NotifyMovement();
         }
 
 
@@ -154,16 +168,14 @@ namespace Interaction
 
         public void UpdateScaleAndPosition()
         {
-            foreach (ChipSignal chipSignal in Signals)
-                chipSignal.GetComponent<IOScaler>().UpdateScale();
-
             for (var i = 0; i < Signals.Count; i++)
             {
                 var y = AdjustYForGroupMember(transform.position.y, i);
                 Signals[i].transform.SetYPos(y);
             }
 
-            DecimalDisplay.transform.SetYPos(GroupCenter.y);
+            if (DecimalDisplay)
+                DecimalDisplay.transform.SetYPos(GroupCenter.y);
         }
 
         float AdjustYForGroupMember(float DesideredCeterY, int index)
@@ -171,7 +183,7 @@ namespace Interaction
             var handleSizeY = ScalingManager.HandleSizeY;
             var GroupSpacing = ScalingManager.GroupSpacing;
 
-                
+
             float halfExtent = GroupSpacing * (GroupSize - 1f);
             float maxY = DesideredCeterY + halfExtent + handleSizeY / 2f;
             float minY = DesideredCeterY - halfExtent - handleSizeY / 2f;

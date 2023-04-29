@@ -23,25 +23,24 @@ public class Wire : MonoBehaviour
     // [HideInInspector]  
     public Pin endPin;
 
-
-
+    
     public List<Vector2> anchorPoints { get; private set; }
 
-
-
-    float depth;
-
-
-    void Start()
-    {
-        // Simulation.instance.OnSimulationTogle += (_)=> NotifyStateChange();
-
-    }
-
+    
     public Pin ChipInputPin => (startPin.pinType == Pin.PinType.ChipInput) ? startPin : endPin;
 
     public Pin ChipOutputPin => (startPin.pinType == Pin.PinType.ChipOutput) ? startPin : endPin;
 
+
+    private void OnEnable()
+    {
+        ChipInteraction.i.onChipMovement += UpdateWirePos;
+    }
+
+    private void OnDestroy()
+    {
+        ChipInteraction.i.onChipMovement -= UpdateWirePos;
+    }
 
     public void SetAnchorPoints(Vector2[] newAnchorPoints)
     {
@@ -49,24 +48,10 @@ public class Wire : MonoBehaviour
         NotifyWireChange();
     }
 
-    public void SetDepth(int numWires)
-    {
-        depth = numWires * 0.01f;
-        transform.localPosition = Vector3.forward * depth;
-    }
-
-    void LateUpdate()
+    private void UpdateWirePos()
     {
         if (!wireConnected) return;
-
-        float depthOffset = 5;
-
-        transform.localPosition = Vector3.forward * (depth + depthOffset);
-        UpdateWirePos();
-    }
-
-    void UpdateWirePos()
-    {
+        
         const float maxSqrError = 0.00001f;
         // How far are start and end points from the pins they're connected to (chip
         // has been moved)
@@ -75,24 +60,22 @@ public class Wire : MonoBehaviour
         Vector2 endPointError = (Vector2)endPin.transform.position -
                                 anchorPoints[^1];
 
-        if (startPointError.sqrMagnitude > maxSqrError ||
-            endPointError.sqrMagnitude > maxSqrError)
+        if (!(startPointError.sqrMagnitude > maxSqrError) && !(endPointError.sqrMagnitude > maxSqrError)) return;
+        
+        // If start and end points are both same offset from where they should be,
+        // can move all anchor points (entire wire)
+        if ((startPointError - endPointError).sqrMagnitude < maxSqrError &&
+            startPointError.sqrMagnitude > maxSqrError)
         {
-            // If start and end points are both same offset from where they should be,
-            // can move all anchor points (entire wire)
-            if ((startPointError - endPointError).sqrMagnitude < maxSqrError &&
-                startPointError.sqrMagnitude > maxSqrError)
+            for (int i = 0; i < anchorPoints.Count; i++)
             {
-                for (int i = 0; i < anchorPoints.Count; i++)
-                {
-                    anchorPoints[i] += startPointError;
-                }
+                anchorPoints[i] += startPointError;
             }
-
-            anchorPoints[0] = startPin.transform.position;
-            anchorPoints[^1] = endPin.transform.position;
-            NotifyWireChange();
         }
+
+        anchorPoints[0] = startPin.transform.position;
+        anchorPoints[^1] = endPin.transform.position;
+        NotifyWireChange();
     }
 
 
@@ -100,6 +83,7 @@ public class Wire : MonoBehaviour
     {
         ConnectToFirstPin(inputPin);
         Place(outputPin);
+        UpdateWirePos();
     }
 
     public void ConnectToFirstPin(Pin startPin)
@@ -114,7 +98,6 @@ public class Wire : MonoBehaviour
         anchorPoints.Add(startPin.transform.position);
         anchorPoints.Add(startPin.transform.position);
         
-        // UpdateSmoothedLine();
         NotifyWireChange();
     }
 
@@ -180,11 +163,8 @@ public class Wire : MonoBehaviour
     void SwapStartEndPoints()
     {
         (startPin, endPin) = (endPin, startPin);
-
         anchorPoints.Reverse();
         NotifyWireChange();
-        // UpdateSmoothedLine();
-        // UpdateCollider();
     }
 
 

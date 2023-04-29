@@ -37,9 +37,11 @@ namespace Interaction.Display
 
         private void DrawSignals(WireType wireType = WireType.Simple, PinState state = PinState.LOW)
         {
-            if (indicatorRenderer && Interactable)
+            if (!indicatorRenderer) return;
+            
+            if (Interactable)
             {
-                indicatorRenderer.material.color = CurrentTheme.GetColour(state, wireType); 
+                indicatorRenderer.material.color = CurrentTheme.GetColour(state, wireType);
             }
             else
             {

@@ -11,14 +11,14 @@ public static class ChipSaver
 
     public static void Save(ChipEditor chipEditor)
     {
-        ChipSaveData chipSaveData = new ChipSaveData(chipEditor);
+        ChipInstanceHolder chipInstanceHolder = new ChipInstanceHolder(chipEditor);
 
         // Generate new chip save string
-        var compositeChip = new SavedChip(chipSaveData);
+        var compositeChip = new SavedChip(chipInstanceHolder);
         string saveString = JsonUtility.ToJson(compositeChip, usePrettyPrint);
 
         // Generate save string for wire layout
-        var wiringSystem = new SavedWireLayout(chipSaveData);
+        var wiringSystem = new SavedWireLayout(chipInstanceHolder);
         string wiringSaveString = JsonUtility.ToJson(wiringSystem, usePrettyPrint);
 
         // Write to file
@@ -91,13 +91,13 @@ public static class ChipSaver
 
     public static void Update(ChipEditor chipEditor, Chip chip)
     {
-        ChipSaveData chipSaveData = new ChipSaveData(chipEditor);
+        ChipInstanceHolder chipInstanceHolder = new ChipInstanceHolder(chipEditor);
 
         // Generate new chip save string
-        string saveString = JsonUtility.ToJson(new SavedChip(chipSaveData), usePrettyPrint);
+        string saveString = JsonUtility.ToJson(new SavedChip(chipInstanceHolder), usePrettyPrint);
 
         // Generate save string for wire layout
-        string wiringSaveString = JsonUtility.ToJson(new SavedWireLayout(chipSaveData), usePrettyPrint);
+        string wiringSaveString = JsonUtility.ToJson(new SavedWireLayout(chipInstanceHolder), usePrettyPrint);
 
         // Write to file
         SaveSystem.WriteChip(chipEditor.Data.name, saveString);
@@ -114,7 +114,7 @@ public static class ChipSaver
                 int currentChipIndex =
                     Array.FindIndex(savedChips[i].savedComponentChips,
                                     c => c.chipName == currentChipName);
-                SavedComponentChip updatedComponentChip = new SavedComponentChip(chipSaveData, chip);
+                SavedComponentChip updatedComponentChip = new SavedComponentChip(chipInstanceHolder, chip);
                 SavedComponentChip oldComponentChip =
                     savedChips[i].savedComponentChips[currentChipIndex];
 
@@ -153,7 +153,7 @@ public static class ChipSaver
         SaveSystem.WriteChip(Chipname, JsonUtility.ToJson(ChipToEdit, usePrettyPrint));
     }
 
-    public static void EditSavedChip(SavedChip savedChip, ChipSaveData chipSaveData)
+    public static void EditSavedChip(SavedChip savedChip, ChipInstanceHolder chipInstanceHolder)
     { }
 
     public static bool IsSafeToDelete(string chipName)

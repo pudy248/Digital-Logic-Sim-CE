@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -40,7 +41,7 @@ namespace Core
 
         private void PackageBuiltinChip<T>() where T : BuiltinChip
         {
-            ChipEditor chipEditor = Manager.instance.activeChipEditor;
+            ChipEditor chipEditor = Manager.ActiveChipEditor;
             var chipName = chipEditor.Data.name;
             // Add and set up the custom chip component
             var chip = gameObject.AddComponent<T>();
@@ -101,7 +102,7 @@ namespace Core
 
         private CustomChip PackageCustomChip(ChipPackageDisplay packageDisplay)
         {
-            ChipEditor chipEditor = Manager.instance.activeChipEditor;
+            ChipEditor chipEditor = Manager.ActiveChipEditor;
             
             // Add and set up the custom chip component
             var chip = SetUpChip(packageDisplay, chipEditor.Data);
@@ -125,8 +126,12 @@ namespace Core
             chip.outputSignals = GetAllSignals<OutputSignal>(chipEditor.outputsEditor).ToArray();
 
 
-            // Create pins and set set package size
+            // Create pins
             SpawnPins(chip);
+            chipEditor.chipImplementationHolder.SetParent(packageDisplay.transform);
+            chipEditor.chipImplementationHolder.gameObject.SetActive(false);
+            packageDisplay.Init();
+            
             return chip;
         }
 
@@ -172,6 +177,27 @@ namespace Core
             }
         }
 
+        
+        public SpawnableChip TryPackageAndReplaceChip(List<SpawnableChip> SpawnableCustomChips ,string original)
+        {
+            ChipPackageDisplay oldPackageDisplay =GetComponentsInChildren<ChipPackageDisplay>(true).First( cp => cp.name == original);
+            if (oldPackageDisplay != null)
+            {
+                Destroy(oldPackageDisplay.gameObject);
+            }
+
+            var customChip = GenerateCustomPackageAndChip();
+
+            int index = SpawnableCustomChips.FindIndex(c => c.chipName == original);
+
+            if (index < 0) return customChip;
+
+            SpawnableCustomChips[index] = customChip;
+
+
+
+            return customChip;
+        }
 
     }
 }

@@ -11,7 +11,7 @@ public class SavedComponentChip {
 	public SavedInputPin[] inputPins;
 	public SavedOutputPin[] outputPins;
 
-	public SavedComponentChip (ChipSaveData chipSaveData, Chip chip) {
+	public SavedComponentChip (ChipInstanceHolder chipInstanceHolder, Chip chip) {
 		chipName = chip.chipName;
 
         posX = chip.transform.position.x ;
@@ -20,12 +20,12 @@ public class SavedComponentChip {
         // Input pins
         inputPins = new SavedInputPin[chip.inputPins.Count];
 		for (int i = 0; i < inputPins.Length; i++)
-			inputPins[i] = new SavedInputPin (chipSaveData, chip.inputPins[i]);
+			inputPins[i] = new SavedInputPin (chipInstanceHolder, chip.inputPins[i]);
 
 		// Output pins
 		outputPins = new SavedOutputPin[chip.outputPins.Count];
 		for (int i = 0; i < chip.outputPins.Count; i++) 
-			outputPins[i] = new SavedOutputPin(chipSaveData, chip.outputPins[i]);
+			outputPins[i] = new SavedOutputPin(chipInstanceHolder, chip.outputPins[i]);
 	}
 
 }

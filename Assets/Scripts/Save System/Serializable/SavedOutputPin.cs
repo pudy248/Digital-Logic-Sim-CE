@@ -7,7 +7,7 @@ public class SavedOutputPin {
 	public string name;
 	public Pin.WireType wireType;
 
-	public SavedOutputPin (ChipSaveData chipSaveData, Pin pin) {
+	public SavedOutputPin (ChipInstanceHolder chipInstanceHolder, Pin pin) {
 		name = pin.pinName;
 		wireType = pin.wireType;
 	}

@@ -7,12 +7,12 @@ public class SavedWireLayout {
 
 	public SavedWire[] serializableWires;
 
-	public SavedWireLayout (ChipSaveData chipSaveData) {
-		Wire[] allWires = chipSaveData.wires;
+	public SavedWireLayout (ChipInstanceHolder chipInstanceHolder) {
+		Wire[] allWires = chipInstanceHolder.wires;
 		serializableWires = new SavedWire[allWires.Length];
 
 		for (int i = 0; i < allWires.Length; i++) {
-			serializableWires[i] = new SavedWire (chipSaveData, allWires[i]);
+			serializableWires[i] = new SavedWire (chipInstanceHolder, allWires[i]);
 		}
 
 	}
