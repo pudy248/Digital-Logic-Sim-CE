@@ -1,53 +1,41 @@
 ﻿using System;
 using System.Linq;
+using DLS.Simulation;
+using Interaction.Display;
 using UnityEngine;
 
 // Provides input signal (0 or 1) to a chip.
 // When designing a chip, this input signal can be manually set to 0 or 1 by the player.
+[RequireComponent(typeof(SignalDisplay))]
 public class InputSignal : ChipSignal
 {
 	public TMPro.TMP_InputField busInput;
 
-	protected override void Start()
-	{
-		base.Start();
-		SetCol();
-	}
-
 	public void ToggleActive()
 	{
 		currentState = 1 - currentState;
-		SetCol();
+		NotifyStateChange();
 	}
 
-	public void SetState(uint state)
+	public void SetState(PinState pinState)
 	{
-		currentState = state >= 1 ? 1U : 0U;
-		SetCol();
+		currentState = pinState;
+		NotifyStateChange();
 	}
 
-	public void SendSignal(uint signal)
+	public void SendSignal(PinState signal)
 	{
 		currentState = signal;
 		outputPins[0].ReceiveSignal(signal);
-		SetCol();
-	}
-
-	public void SendOffSignal()
-	{
-		outputPins[0].ReceiveSignal(0);
-		SetCol();
+		NotifyStateChange();
 	}
 
 	public void SendSignal()
 	{
 		outputPins[0].ReceiveSignal(currentState);
 	}
-
-	void SetCol()
-	{
-		SetDisplayState(currentState);
-	}
+	
+	
 
 	public override void UpdateSignalName(string newName)
 	{
@@ -62,10 +50,8 @@ public class InputSignal : ChipSignal
 			ToggleActive();
 		else
 		{
-			busReadout.gameObject.SetActive(false);
 			busInput.gameObject.SetActive(true);
 			busInput.Select();
-			//indicatorRenderer.material.color = palette.editColor;
 		}
 	}
 
@@ -82,9 +68,9 @@ public class InputSignal : ChipSignal
 			else throw e;
 		}
 		enteredState = wireType != Pin.WireType.Bus32 ? Math.Min(enteredState, (uint)(1 << Pin.NumBits(wireType)) - 1) : enteredState;
-		currentState = Math.Max(enteredState, 0);
+		currentState = (PinState)Math.Max(enteredState, 0);
 		busInput.text = currentState.ToString();
 		busInput.gameObject.SetActive(false);
-		SetCol();
+		NotifyStateChange();
 	}
 }

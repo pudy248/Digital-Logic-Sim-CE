@@ -1,17 +1,16 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class PinNameDisplayManager : MonoBehaviour
 {
-
     public PinNameDisplay pinNamePrefab;
     ChipEditor chipEditor;
     ChipEditorOptions editorDisplayOptions;
     Pin highlightedPin;
 
-    [HideInInspector]
-    public List<PinNameDisplay> pinNameDisplays;
+    [HideInInspector] public List<PinNameDisplay> pinNameDisplays;
     List<Pin> pinsToDisplay;
 
     void Awake()
@@ -36,31 +35,18 @@ public class PinNameDisplayManager : MonoBehaviour
         var mode = editorDisplayOptions.activePinNameDisplayMode;
         pinsToDisplay.Clear();
 
-        if (mode == ChipEditorOptions.PinNameDisplayMode.AlwaysMain ||
-            mode == ChipEditorOptions.PinNameDisplayMode.AlwaysAll)
+        void SelectPinToDisplay(ChipInterfaceEditor chipInterface)
         {
-            if (mode == ChipEditorOptions.PinNameDisplayMode.AlwaysAll)
+            foreach (var chip in chipInterface.GetAllSignals().Where(chip => chipInterface.selectedSignals != null && !chipInterface.selectedSignals.Contains(chip)))
             {
-                foreach (var chip in chipEditor.chipInteraction.allChips)
-                {
-                    pinsToDisplay.AddRange(chip.inputPins);
-                    pinsToDisplay.AddRange(chip.outputPins);
-                }
+                pinsToDisplay.AddRange(chip.inputPins);
             }
-            foreach (var chip in chipEditor.inputsEditor.signals)
-            {
-                if (!chipEditor.inputsEditor.selectedSignals.Contains(chip))
-                {
-                    pinsToDisplay.AddRange(chip.outputPins);
-                }
-            }
-            foreach (var chip in chipEditor.outputsEditor.signals)
-            {
-                if (!chipEditor.outputsEditor.selectedSignals.Contains(chip))
-                {
-                    pinsToDisplay.AddRange(chip.inputPins);
-                }
-            }
+        }
+
+        if (mode is ChipEditorOptions.PinNameDisplayMode.AlwaysMain or ChipEditorOptions.PinNameDisplayMode.AlwaysAll)
+        {
+            SelectPinToDisplay(chipEditor.inputsEditor);
+            SelectPinToDisplay(chipEditor.outputsEditor);
         }
 
         if (highlightedPin)
@@ -102,7 +88,10 @@ public class PinNameDisplayManager : MonoBehaviour
         }
     }
 
-    void OnMouseOverPin(Pin pin) { highlightedPin = pin; }
+    void OnMouseOverPin(Pin pin)
+    {
+        highlightedPin = pin;
+    }
 
     void OnMouseExitPin(Pin pin)
     {

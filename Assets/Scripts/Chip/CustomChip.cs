@@ -1,30 +1,23 @@
 ﻿using System.Linq;
 using UnityEngine;
 using System.Collections.Generic;
+using DLS.Simulation;
 
-public class CustomChip : Chip
+public class CustomChip : SpawnableChip
 {
 
     public InputSignal[] inputSignals;
     public OutputSignal[] outputSignals;
 
-    public Pin pseudoInput;
-
     public int FolderIndex = 0;
 
-    [UnityEngine.HideInInspector]
-    public Pin[] unconnectedInputs;
+    [HideInInspector]
+    public List<Pin> unconnectedInputs = new List<Pin>();
 
-    protected override void Start()
+    public override void Init()
     {
-        base.Start();
-    }
-
-    public void Init()
-    {
-        //GameObject pseudoPins = Instantiate(new GameObject("Pseudo Pins"),
-                                            //parent: this.transform, false);
         Editable = true;
+        ChipType = ChipType.Custom;
     }
 
     // Applies wire types from signals to pins
@@ -41,20 +34,10 @@ public class CustomChip : Chip
         }
     }
 
-    public bool HasNoInputs
-    {
-        get { return inputPins.Length == 0; }
-    }
-
-    public override void ReceiveInputSignal(Pin pin)
-    {
-        base.ReceiveInputSignal(pin);
-    }
-
     protected override void ProcessOutput()
     {
         // Send signals from input pins through the chip
-        for (int i = 0; i < inputPins.Length; i++)
+        for (int i = 0; i < inputPins.Count; i++)
         {
             inputSignals[i].SendSignal(inputPins[i].State);
         }
@@ -65,12 +48,10 @@ public class CustomChip : Chip
         }
 
         // Pass processed signals on to ouput pins
-        for (int i = 0; i < outputPins.Length; i++)
+        for (int i = 0; i < outputPins.Count; i++)
         {
-            uint outputState = outputSignals[i].inputPins[0].State;
+            PinState outputState = outputSignals[i].inputPins[0].State;
             outputPins[i].ReceiveSignal(outputState);
         }
     }
-
-    public void ProcessOutputNoInputs() { ProcessOutput(); }
 }

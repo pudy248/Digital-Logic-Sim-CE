@@ -1,11 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using DLS.Simulation;
 using UnityEngine;
 
 public class Pin : MonoBehaviour
 {
+    public event Action<PinState,WireType> OnStateChange;
+    public event Action OnSelection; 
+    public event Action OnDeselection; 
 
     public enum WireType { Simple, Bus4, Bus8, Bus16, Bus32 }
     public enum PinType { ChipInput, ChipOutput }
+    
     public PinType pinType;
 
     public WireType wireType;
@@ -27,139 +33,75 @@ public class Pin : MonoBehaviour
     // The pins which this pin forwards its signal to
     [HideInInspector]
     public List<Pin> childPins = new List<Pin>();
-    // Current state of the pin: 0 == LOW, 1 == HIGH
-    uint currentState;
+    // Current state of the pin: -1 = HighZ 0 == LOW, 1 == HIGH 
+    PinState currentState;
 
-    bool interact;
 
-    // Appearance
-    Color defaultCol = Color.black;
-    Color interactCol;
-    Color onCol;
-    Color onColBus;
-    Material material;
 
-    bool simActive;
-
-    public static float radius => ScalingManager.pinSize / 2 / 2;
-
-    public static float interactionRadius => radius * 1.1f;
 
     public static int NumBits(WireType type)
-	{
-        switch(type)
-		{
-            case WireType.Bus4:
-                return 4;
-            case WireType.Bus8:
-                return 8;
-            case WireType.Bus16:
-                return 16;
-            case WireType.Bus32:
-                return 32;
-            default:
-                return 1;
-        }
-	}
-
-    void Awake()
     {
-        material = GetComponent<MeshRenderer>().material;
-        material.color = defaultCol;
-        interact = false;
+        return type switch
+        {
+            WireType.Bus4 => 4,
+            WireType.Bus8 => 8,
+            WireType.Bus16 => 16,
+            WireType.Bus32 => 32,
+            _ => 1
+        };
     }
 
     void Start()
     {
-        simActive = Simulation.instance.active;
-        interactCol = UIManager.Palette.selectedColor;
-        onCol = UIManager.Palette.onCol;
-        onColBus = UIManager.Palette.busColor;
-        SetScale();
+        Simulation.instance.OnSimulationTogle += (_)=> NotifyStateChange();
     }
 
-    public void SetScale() { transform.localScale = Vector3.one * radius * 2; }
-
-    public void tellPinSimIsOff()
-    {
-        simActive = false;
-        UpdateColor();
-    }
-
-    public void tellPinSimIsOn()
-    {
-        simActive = true;
-        UpdateColor();
-    }
-
-    public void UpdateColor()
-    {
-        if (material)
-        {
-            Color newColor = new Color();
-            if (interact)
-            {
-                newColor = interactCol;
-            }
-            else if (simActive && currentState > 0)
-            {
-                newColor = wireType == WireType.Simple ? onCol : onColBus;
-            }
-            else
-            {
-                newColor = defaultCol;
-            }
-            if (material.color != newColor)
-            {
-                material.color = newColor;
-            }
-        }
-    }
 
     // Get the current state of the pin: 0 == LOW, 1 == HIGH
-    public uint State
-    {
-        get { return currentState; }
-    }
+    public PinState State => currentState;
 
     // Note that for ChipOutput pins, the chip itself is considered the parent, so
     // will always return true Otherwise, only true if the parentPin of this pin
     // has been set
-    public bool HasParent
-    {
-        get { return parentPin != null || pinType == PinType.ChipOutput; }
-    }
+    public bool HasParent => parentPin != null || pinType == PinType.ChipOutput;
 
     // Receive signal: 0 == LOW, 1 = HIGH
     // Sets the current state to the signal
     // Passes the signal on to any connected pins / electronic component
-    public void ReceiveSignal(uint signal)
+    public void ReceiveSignal(PinState State)
     {
-        currentState = signal;
-        if (pinType == PinType.ChipInput && !cyclic)
+        // if(chip == null) return;
+        currentState = State;
+        switch (pinType)
         {
-            chip.ReceiveInputSignal(this);
-        }
-        else if (pinType == PinType.ChipOutput)
-        {
-            for (int i = 0; i < childPins.Count; i++)
+            case PinType.ChipInput when !cyclic:
+                chip.ReceiveInputSignal(this);
+                break;
+            case PinType.ChipOutput:
             {
-                childPins[i].ReceiveSignal(signal);
+                foreach (var t in childPins)
+                    t.ReceiveSignal(State);
+
+                break;
             }
         }
-        UpdateColor();
+        NotifyStateChange();
+    }
+
+    public void NotifyStateChange()
+    {
+        OnStateChange?.Invoke(currentState,wireType);
     }
 
     public static void MakeConnection(Pin pinA, Pin pinB)
     {
-        if (IsValidConnection(pinA, pinB))
-        {
-            Pin parentPin = (pinA.pinType == PinType.ChipOutput) ? pinA : pinB;
-            Pin childPin = (pinA.pinType == PinType.ChipInput) ? pinA : pinB;
+        if (!IsValidConnection(pinA, pinB)) return;
+        
+        Pin parentPin = (pinA.pinType == PinType.ChipOutput) ? pinA : pinB;
+        Pin childPin = (pinA.pinType == PinType.ChipInput) ? pinA : pinB;
 
-            parentPin.childPins.Add(childPin);
-            childPin.parentPin = parentPin;
-        }
+        parentPin.childPins.Add(childPin);
+        childPin.parentPin = parentPin;
     }
 
     public static void RemoveConnection(Pin pinA, Pin pinB)
@@ -183,31 +125,23 @@ public class Pin : MonoBehaviour
 
     public static bool TryConnect(Pin pinA, Pin pinB)
     {
-
-        if (pinA.pinType != pinB.pinType)
-        {
-            Pin parentPin = (pinA.pinType == PinType.ChipOutput) ? pinA : pinB;
-            Pin childPin = (parentPin == pinB) ? pinA : pinB;
-            parentPin.childPins.Add(childPin);
-            childPin.parentPin = parentPin;
-            return true;
-        }
-        return false;
+        if (pinA.pinType == pinB.pinType) return false;
+        
+        Pin parentPin = (pinA.pinType == PinType.ChipOutput) ? pinA : pinB;
+        Pin childPin = (parentPin == pinB) ? pinA : pinB;
+        parentPin.childPins.Add(childPin);
+        childPin.parentPin = parentPin;
+        return true;
     }
 
     public void MouseEnter()
     {
-        interact = true;
-        transform.localScale = Vector3.one * interactionRadius * 2;
-        UpdateColor();
+        OnSelection?.Invoke();
     }
 
     public void MouseExit()
     {
-        interact = false;
-        transform.localScale = Vector3.one * radius * 2;
-        UpdateColor();
+       OnDeselection?.Invoke();
     }
-
 
 }
