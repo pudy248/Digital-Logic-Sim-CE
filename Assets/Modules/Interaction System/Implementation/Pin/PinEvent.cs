@@ -18,6 +18,6 @@ public class PinEvent : MonoBehaviour
 
     private void Start()
     {
-        Manager.ActiveChipEditor.pinAndWireInteraction.RegisterPin(MouseInteraction);
+        Manager.PinAndWireInteraction.RegisterPin(MouseInteraction);
     }
 }

@@ -60,16 +60,14 @@ public class Simulation : MonoBehaviour
         ProcessInputs();
     }
 
-    public void ResetSimulation()
+    private void ResetSimulation()
     {
         StopSimulation();
         simulationFrame = 0;
 
-        if (active)
-        {
-            FindObjectOfType<RunButton>().SetOff();
-            active = false;
-        }
+        if (!active) return;
+        FindObjectOfType<RunButton>().SetOff();
+        active = false;
     }
 
     private void ClearOutputSignals()

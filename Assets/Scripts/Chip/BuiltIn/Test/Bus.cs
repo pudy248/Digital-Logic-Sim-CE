@@ -30,7 +30,7 @@ public class Bus : Chip
     void SetCol(PinState pinState)
     {
         var defTheme = signalPalette.GetDefaultTheme();
-        meshRenderer.material.color = defTheme.GetColour(PinStates.Getstates(pinState))[0];
+        meshRenderer.material.color = defTheme.GetColour(PinStates.Getstates(pinState));
     }
 
 

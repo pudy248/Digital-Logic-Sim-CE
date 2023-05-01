@@ -12,6 +12,7 @@ using UI.ThemeSystem;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
+using VitoBarra.System.Interaction;
 
 public class PinAndWireInteraction : Interactable
 {
@@ -33,9 +34,6 @@ public class PinAndWireInteraction : Interactable
     Dictionary<Pin, Wire> wiresByChipInputPin;
     public List<Wire> allWires { get; private set; }
 
-    ChipInteraction chipInteraction;
-    ChipInterfaceEditor inputEditor;
-    ChipInterfaceEditor outputEditor;
 
     List<Wire> wiresToPaste;
     public State CurrentState => _currentState;
@@ -55,9 +53,6 @@ public class PinAndWireInteraction : Interactable
 
     public void Init(ChipInteraction chipInteraction, ChipInterfaceEditor inputEditor, ChipInterfaceEditor outputEditor)
     {
-        this.chipInteraction = chipInteraction;
-        this.inputEditor = inputEditor;
-        this.outputEditor = outputEditor;
         chipInteraction.onDeleteChip += DeleteChipWires;
         inputEditor.OnDeleteChip += DeleteChipWires;
         outputEditor.OnDeleteChip += DeleteChipWires;
@@ -245,6 +240,7 @@ public class PinAndWireInteraction : Interactable
 
     private void PinRightClickHandler(Pin pin)
     {
+        if (CurrentState == State.PlacingWire) return;
         SetTheme(pin);
     }
 
@@ -265,12 +261,13 @@ public class PinAndWireInteraction : Interactable
 
     private void WireRightClickHandler(Wire wire)
     {
+        if (CurrentState == State.PlacingWire) return;
         SetTheme(wire);
     }
 
     private void WireLeftClickHandler(Wire wire)
     {
-        if (!wire || wire == wireToPlace || CurrentState == State.PlacingWire|| !RequestFocus()) return;
+        if (!wire || wire == wireToPlace || CurrentState == State.PlacingWire || !RequestFocus()) return;
         StartPlaceWire();
         // Creating new wire starting from existing wire
         wireStartPin = wire.ChipOutputPin;
@@ -323,10 +320,10 @@ public class PinAndWireInteraction : Interactable
 
     void SetTheme<T>(T gameobject) where T : MonoBehaviour
     {
-        var themeSettable = gameobject.GetComponentInChildren<IThemeSettable>(true) 
+        var themeSettable = gameobject.GetComponentInChildren<IThemeSettable>(true)
                             ?? gameobject.GetComponentInParent<IThemeSettable>(true);
 
-        if(themeSettable == null) return;
+        if (themeSettable == null) return;
 
         MenuManager.instance.themeChangerMenu.OpenUI(themeSettable);
     }

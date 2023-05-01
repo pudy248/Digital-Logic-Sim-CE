@@ -4,60 +4,63 @@ using System;
 using Core;
 using DLS.Simulation;
 
-public class Keyboard : BuiltinChip
+namespace DLS.Chip.BuiltIn
 {
-    public override void Init()
+    public class Keyboard : BuiltinChip
     {
-        base.Init();
-        ChipType = ChipType.Miscellaneous;
-        PackageGraphicData = new PackageGraphicData()
+        public override void Init()
         {
-            PackageColour = new Color(1, 2, 3, 255)
-        };
-        inputPins = new List<Pin>(0);
-        outputPins = new List<Pin>(0);
-        chipName = "KEYBOARD";
-    }
-
-    public List<string> chars = new List<string>();
-
-    void Update()
-    {
-        if (Input.anyKey)
-        {
-            if (!(Input.inputString?.ToCharArray()?.Length > 0)) return;
-
-            chars.Clear();
-            char tmp = Input.inputString.ToCharArray()[0];
-            int temp = (int)tmp;
-
-            string binary = Convert.ToString(temp, 2);
-
-            if (binary.Length < 8)
+            base.Init();
+            ChipType = ChipType.Miscellaneous;
+            PackageGraphicData = new PackageGraphicData()
             {
-                for (int i = 8 - binary.Length; i > 0; i--)
+                PackageColour = new Color(1, 2, 3, 255)
+            };
+            inputPins = new List<Pin>(0);
+            outputPins = new List<Pin>(0);
+            chipName = "KEYBOARD";
+        }
+
+        public List<string> chars = new List<string>();
+
+        void Update()
+        {
+            if (Input.anyKey)
+            {
+                if (!(Input.inputString?.ToCharArray()?.Length > 0)) return;
+
+                chars.Clear();
+                char tmp = Input.inputString.ToCharArray()[0];
+                int temp = (int)tmp;
+
+                string binary = Convert.ToString(temp, 2);
+
+                if (binary.Length < 8)
                 {
-                    binary = "0" + binary;
+                    for (int i = 8 - binary.Length; i > 0; i--)
+                    {
+                        binary = "0" + binary;
+                    }
+                }
+
+                for (var i = 0; i < 8; i++)
+                {
+                    chars.Add(Convert.ToString(binary[i]));
+                }
+
+                for (var i = 0; i < chars.Count; i++)
+                {
+                    var outputSignal = new PinStates(uint.Parse(chars[i]));
+                    outputPins[i].ReceiveSignal(outputSignal);
                 }
             }
 
-            for (var i = 0; i < 8; i++)
+            else
             {
-                chars.Add(Convert.ToString(binary[i]));
-            }
-
-            for (var i = 0; i < chars.Count; i++)
-            {
-                var outputSignal = new PinStates(uint.Parse(chars[i]));
-                outputPins[i].ReceiveSignal(outputSignal);
-            }
-        }
-
-        else
-        {
-            for (var i = 0; i < 8; i++)
-            {
-                outputPins[i].ReceiveZero();
+                for (var i = 0; i < 8; i++)
+                {
+                    outputPins[i].ReceiveZero();
+                }
             }
         }
     }

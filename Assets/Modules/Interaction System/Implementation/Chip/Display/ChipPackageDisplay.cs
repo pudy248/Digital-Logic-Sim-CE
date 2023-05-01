@@ -11,10 +11,6 @@ public class ChipPackageDisplay : MonoBehaviour
     private SpawnableChip SpawnableChip;
 
 
-    float PinRadius => PinDisplay.radius / 4;
-    float PinInteraction => PinRadius * PinDisplay.IteractionFactor;
-
-
     void Awake()
     {
         ScalingManager.i.OnScaleChange += SetSizeAndSpacing;
@@ -58,12 +54,18 @@ public class ChipPackageDisplay : MonoBehaviour
         container.GetComponent<MeshRenderer>().material.color = dataColour;
     }
 
+
     private void SetSizeAndSpacing()
     {
         if (SpawnableChip == null) return;
-        
+
         SpawnableChip chip = SpawnableChip;
         var data = chip.PackageGraphicData;
+
+        float PinRadius = PinDisplay.radius * 0.25f;
+        float PinInteraction = PinRadius * PinDisplay.IteractionFactor;
+
+        nameText.fontSize = ScalingManager.PackageFontSize;
 
 
         float containerHeightPadding = 0;
@@ -127,11 +129,14 @@ public class ChipPackageDisplay : MonoBehaviour
         }
         else
         {
-            container.transform.localScale =
-                new Vector3(containerWidth, containerHeight, 1);
-            GetComponent<BoxCollider2D>().size =
-                new Vector2(containerWidth, containerHeight);
+            container.transform.localScale = new Vector3(containerWidth, containerHeight, 1);
+            GetComponent<BoxCollider2D>().size = new Vector2(containerWidth, containerHeight);
         }
+    }
+
+    private void OnValidate()
+    {
+        SetSizeAndSpacing();
     }
 
 

@@ -8,7 +8,7 @@ public class OutputSignal : ChipSignal {
 
 
 	public override void ReceiveInputSignal (Pin inputPin) {
-		currentState = inputPin.State;
+		State = inputPin.State;
 		NotifyStateChange();
 	}
 

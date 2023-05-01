@@ -44,7 +44,10 @@ public class Pin : MonoBehaviour
     [HideInInspector] public List<Pin> childPins = new List<Pin>();
 
     // Current state of the pin: -1 = HighZ 0 == LOW, 1 == HIGH 
-    PinStates currentState = PinStates.Zero;
+    private PinStates currentState;
+    
+    // Get the current state of the pin: 0 == LOW, 1 == HIGH
+    public PinStates State => currentState ??= PinStates.AllLow(wireType);
 
 
     public static int NumBits(WireType type)
@@ -61,12 +64,10 @@ public class Pin : MonoBehaviour
 
     void Start()
     {
+        currentState = PinStates.Zero;
         Simulation.instance.OnSimulationTogle += (_) => NotifyStateChange();
     }
 
-
-    // Get the current state of the pin: 0 == LOW, 1 == HIGH
-    public PinStates State => currentState;
 
     // Note that for ChipOutput pins, the chip itself is considered the parent, so
     // will always return true Otherwise, only true if the parentPin of this pin
@@ -101,18 +102,20 @@ public class Pin : MonoBehaviour
     {
         ReceiveSignal(PinStates.AllLow(wireType));
     }
+
     public void ReceiveOne()
     {
         ReceiveSignal(PinStates.AllHigh(wireType));
     }
-    
+
+
+
 
     public void NotifyStateChange()
     {
         OnStateChange?.Invoke(currentState, wireType);
     }
-    
-    
+
 
     public static void MakeConnection(Pin pinA, Pin pinB)
     {
@@ -154,6 +157,4 @@ public class Pin : MonoBehaviour
         childPin.parentPin = parentPin;
         return true;
     }
-
-
 }

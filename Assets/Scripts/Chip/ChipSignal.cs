@@ -14,8 +14,14 @@ public class ChipSignal : Chip
     public event Action<WireType, PinStates> OnStateChange;
     public event Action<bool> OnInteractableSet;
 
-    public PinStates currentState;
     public WireType wireType = WireType.Simple;
+    private PinStates currentState;
+
+    public PinStates State
+    {
+        get => currentState ??= PinStates.AllLow(wireType);
+        protected set => currentState = value;
+    }
 
     protected bool interactable = true;
 
@@ -41,12 +47,12 @@ public class ChipSignal : Chip
     public void NotifyStateChange()
     {
         if (!interactable) return;
-        OnStateChange?.Invoke(wireType, currentState);
+        OnStateChange?.Invoke(wireType, State);
     }
 
     public void ClearStates()
     {
-        currentState = PinStates.AllLow(wireType);
+        State = PinStates.AllLow(wireType);
         NotifyStateChange();
     }
 }

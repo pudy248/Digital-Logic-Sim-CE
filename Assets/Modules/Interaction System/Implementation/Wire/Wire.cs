@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using DLS.Simulation;
 using UnityEngine;
 using UnityEngine.Serialization;
+using VitoBarra.System.Interaction;
 
 public class Wire : Interactable
 {
@@ -34,13 +35,13 @@ public class Wire : Interactable
 
     private void OnEnable()
     {
-        ChipInteraction.i.onChipMovement += UpdateWirePos;
+        Manager.ChipInteraction.onChipMovement += UpdateWirePos;
         ScalingManager.i.OnScaleChange += UpdateWirePos;
     }
 
     private void OnDestroy()
     {
-        ChipInteraction.i.onChipMovement -= UpdateWirePos;
+        Manager.ChipInteraction.onChipMovement -= UpdateWirePos;
         ScalingManager.i.OnScaleChange -= UpdateWirePos;
     }
 
@@ -50,7 +51,7 @@ public class Wire : Interactable
         NotifyWireChange();
     }
 
-    public void UpdateWirePos()
+    private void UpdateWirePos()
     {
         if (!wireConnected) return;
         

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class WireInformation
@@ -37,57 +38,47 @@ public class CopyPaste : MonoBehaviour
 
     public void Copy()
     {
-        if (Manager.ActiveChipEditor.pinAndWireInteraction.CurrentState !=
-            PinAndWireInteraction.State.PasteWires)
+        if (Manager.PinAndWireInteraction.CurrentState == PinAndWireInteraction.State.PasteWires) return;
+        clipboard.Clear();
+        List<Chip> selected =
+            Manager.ChipInteraction.SelectedChips;
+
+        wires.Clear();
+
+        foreach (Wire wire in Manager.PinAndWireInteraction.allWires)
         {
-            clipboard.Clear();
-            List<Vector3> positions = new List<Vector3>();
-            List<Chip> selected =
-                Manager.ActiveChipEditor.chipInteraction.SelectedChips;
-
-            wires.Clear();
-
-            foreach (Wire wire in Manager.ActiveChipEditor.pinAndWireInteraction
-                         .allWires)
+            WireInformation info = RequiredWire(wire, selected);
+            if (info != null)
             {
-                WireInformation info = RequiredWire(wire, selected);
-                if (info != null)
-                {
-                    wires.Add(info);
-                }
+                wires.Add(info);
             }
+        }
 
-            foreach (Chip chip in selected)
-            {
-                positions.Add(chip.transform.position);
-            }
+        List<Vector3> positions = selected.Select(chip => chip.transform.position).ToList();
 
-            Vector3 center = MathUtility.Center(positions);
-            foreach (Chip chip in selected)
-            {
-                clipboard.Add(new KeyValuePair<Chip, Vector3>(
-                    Manager.instance.GetChipPrefab(chip),
-                    chip.transform.position - center));
-            }
+        Vector3 center = MathUtility.Center(positions);
+        foreach (Chip chip in selected)
+        {
+            clipboard.Add(new KeyValuePair<Chip, Vector3>(
+                Manager.instance.GetChipPrefab(chip),
+                chip.transform.position - center));
         }
     }
 
     public void Paste()
     {
-        if (Manager.ActiveChipEditor.pinAndWireInteraction.CurrentState !=
-            PinAndWireInteraction.State.PasteWires)
-        {
-            foreach (KeyValuePair<Chip, Vector3> clipboardItem in clipboard)
-            {
-                if (clipboardItem.Key is CustomChip custom)
-                    custom.ApplyWireModes();
-            }
+        if (Manager.PinAndWireInteraction.CurrentState == PinAndWireInteraction.State.PasteWires) return;
 
-            List<Chip> newChips =
-                Manager.ActiveChipEditor.chipInteraction.PasteChips(clipboard);
-            Manager.ActiveChipEditor.pinAndWireInteraction.PasteWires(wires,
-                newChips);
+        foreach (KeyValuePair<Chip, Vector3> clipboardItem in clipboard)
+        {
+            if (clipboardItem.Key is CustomChip custom)
+                custom.ApplyWireModes();
         }
+
+        List<Chip> newChips =
+            Manager.ChipInteraction.PasteChips(clipboard);
+        Manager.PinAndWireInteraction.PasteWires(wires,
+            newChips);
     }
 
     public WireInformation RequiredWire(Wire wire, List<Chip> chips)
@@ -101,33 +92,20 @@ public class CopyPaste : MonoBehaviour
             outputs.AddRange(chip.outputPins);
         }
 
-        if (inputs.Contains(wire.endPin) && outputs.Contains(wire.startPin))
-        {
-            WireInformation info = new WireInformation();
+        if (!inputs.Contains(wire.endPin) || !outputs.Contains(wire.startPin)) return null;
 
-            info.wire = wire;
+        WireInformation info = new WireInformation();
 
-            List<Vector2> anchorPoints = new List<Vector2>();
-            // for (int i = 0; i < wire.lineRenderer.positionCount; i++)
-            // {
-            //     anchorPoints.Add(wire.lineRenderer.GetPosition(i));
-            // }
-            foreach (var t in wire.anchorPoints)
-            {
-                anchorPoints.Add(t);
-            }
+        info.wire = wire;
 
-            info.anchorPoints = anchorPoints.ToArray();
+        info.anchorPoints = Enumerable.ToArray(wire.anchorPoints);
 
-            info.endChipIndex = chips.IndexOf(wire.endPin.chip);
-            info.startChipIndex = chips.IndexOf(wire.startPin.chip);
+        info.endChipIndex = chips.IndexOf(wire.endPin.chip);
+        info.startChipIndex = chips.IndexOf(wire.startPin.chip);
 
-            info.endChipPinIndex = chips[info.endChipIndex].inputPins.FindIndex(x => x == wire.endPin);
-            info.startChipPinIndex = chips[info.startChipIndex].outputPins.FindIndex(x => x == wire.startPin);
+        info.endChipPinIndex = chips[info.endChipIndex].inputPins.FindIndex(x => x == wire.endPin);
+        info.startChipPinIndex = chips[info.startChipIndex].outputPins.FindIndex(x => x == wire.startPin);
 
-            return info;
-        }
-
-        return null;
+        return info;
     }
 }

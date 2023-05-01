@@ -10,6 +10,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering.VirtualTexturing;
 using UnityEngine.Serialization;
+using VitoBarra.System.Interaction;
+using VitoBarra.Utils.TextVerifier;
 
 namespace Interaction.Signal
 {
@@ -23,7 +25,7 @@ namespace Interaction.Signal
 
         //Work Variable
         public SignalReferenceHolderList Signals { get; private set; }
-        public int GroupSize { get; private set; }
+        public int SignalNumber { get; private set; }
         private int ID;
 
 
@@ -41,10 +43,11 @@ namespace Interaction.Signal
 
 
         //Property 
-        public bool IsGroup => GroupSize > 1;
+        public bool IsGroup => SignalNumber > 1;
         public string SignalName => Signals.ChipSignals[0].signalName;
-        public bool UseTwosComplement { get; private set; } = true;
-        public Pin.WireType WireType => Signals.ChipSignals[0].wireType;
+        public bool UseTwosComplement = true;
+        public Pin.WireType WireType;
+        public bool DisplayEnabled;
 
         public Vector3 GroupCenter => (Signals.ChipSignals[0].transform.position +
                                        Signals.ChipSignals[^1].transform.position) / 2;
@@ -65,31 +68,30 @@ namespace Interaction.Signal
             ScalingManager.i.OnScaleChange -= UpdateCenterPosition;
         }
 
-        public void SetUpCreation(int _groupSize, float _boundsBottom, float _boundsTop,
-            Vector3 _pinContainers, Action<Chip> _onDeleteChip,
-            EditorInterfaceType _editorInterfaceType, bool RequireFocus = true,
-            bool DisplayEnabled = true)
+        public void init(Pin.WireType wireType, float _boundsBottom, float _boundsTop,
+            EditorInterfaceType _editorInterfaceType, Vector3 _pinContainers, bool displayEnabled = true)
         {
-            if (!DecimalDisplay)
-                DecimalDisplay = GetComponentInChildren<DecimalDisplay>(true);
+            WireType = wireType;
             EditorInterfaceType = _editorInterfaceType;
-            GroupSize = _groupSize;
             BoundsBottom = _boundsBottom;
             BoundsTop = _boundsTop;
             PinContainers = _pinContainers;
-            Signals = new SignalReferenceHolderList(GroupSize);
+            DisplayEnabled = displayEnabled;
+        }
 
-            for (var i = 0; i < GroupSize; i++)
-            {
-                var spawnedSignal = CreateSignal();
 
-                var e = Signals.AddSignals(spawnedSignal);
-                RegisterHandler(e.HandleEvent);
+        public void SetUpCreation(Action<Chip> _onDeleteChip, int _groupSize, bool RequireFocus = true)
+        {
+            if (!DecimalDisplay)
+                DecimalDisplay = GetComponentInChildren<DecimalDisplay>(true);
 
-                if (!IsGroup || !DisplayEnabled) continue;
-                spawnedSignal.OnStateChange += (_, _) =>
-                    DecimalDisplay.UpdateDecimalDisplay(Signals.ChipSignals, UseTwosComplement);
-            }
+            SignalNumber = WireType != Pin.WireType.Simple ? 1 : _groupSize;
+
+
+
+            Signals = new SignalReferenceHolderList(SignalNumber);
+            for (var i = 0; i < SignalNumber; i++)
+                SignalSpawnLogic(WireType, DisplayEnabled);
 
             if (IsGroup && DisplayEnabled)
                 DecimalDisplay.gameObject.SetActive(true);
@@ -108,6 +110,22 @@ namespace Interaction.Signal
                 RequestFocus();
         }
 
+        private ChipSignal SignalSpawnLogic(Pin.WireType wireType, bool DisplayEnabled)
+        {
+            var spawnedSignal = CreateSignal();
+
+            var e = Signals.AddSignals(spawnedSignal);
+            e.ChipSignal.wireType = wireType;
+            RegisterHandler(e.HandleEvent);
+
+            if (!IsGroup || !DisplayEnabled) return spawnedSignal;
+
+            spawnedSignal.OnStateChange += (_, _) =>
+                DecimalDisplay.UpdateDecimalDisplay(Signals.ChipSignals, UseTwosComplement);
+
+            return spawnedSignal;
+        }
+
         private ChipSignal CreateSignal()
         {
             return Instantiate(signalPrefab, PinContainers, Quaternion.identity, transform);
@@ -116,14 +134,14 @@ namespace Interaction.Signal
 
         private SignalReferenceHolder AddSignal()
         {
-            GroupSize++;
+            SignalNumber++;
             return Signals.AddSignals(CreateSignal());
         }
 
         private void RemoveSignal()
         {
             Signals.RemoveSignals();
-            GroupSize--;
+            SignalNumber--;
         }
 
 
@@ -150,7 +168,7 @@ namespace Interaction.Signal
         private void NotifyMovement()
         {
             OnDragig?.Invoke(GroupCenter, EditorInterfaceType);
-            ChipInteraction.i.NotifyMovement();
+            Manager.ActiveChipEditor.chipInteraction.NotifyMovement();
         }
 
 
@@ -189,7 +207,7 @@ namespace Interaction.Signal
             var GroupSpacing = ScalingManager.GroupSpacing;
 
 
-            float halfExtent = GroupSpacing * (GroupSize - 1f);
+            float halfExtent = GroupSpacing * (SignalNumber - 1f);
             float maxY = DesideredCeterY + halfExtent + handleSizeY / 2f;
             float minY = DesideredCeterY - halfExtent - handleSizeY / 2f;
 
@@ -198,7 +216,7 @@ namespace Interaction.Signal
             else if (minY < BoundsBottom)
                 DesideredCeterY += (BoundsBottom - minY);
 
-            float t = (GroupSize > 1) ? index / (GroupSize - 1f) : 0.5f;
+            float t = (SignalNumber > 1) ? index / (SignalNumber - 1f) : 0.5f;
             t = t * 2 - 1;
             float posY = DesideredCeterY - t * halfExtent;
             return posY;
@@ -236,16 +254,17 @@ namespace Interaction.Signal
 
         #region Property
 
-        public void ChangeWireType(Pin.WireType mode)
+        public void ChangeWireType(Pin.WireType newWireType)
         {
+            WireType = newWireType;
             // Change output pin wire mode
             foreach (var sig in Signals.ChipSignals)
-                sig.wireType = mode;
+                sig.wireType = newWireType;
 
             foreach (var pin in Signals.ChipSignals.SelectMany(x => x.inputPins))
             {
-                pin.wireType = mode;
-                Manager.ActiveChipEditor.pinAndWireInteraction.DestroyConnectedWires(pin);
+                pin.wireType = newWireType;
+                Manager.PinAndWireInteraction.DestroyConnectedWires(pin);
             }
 
             // Change input pin wire mode
@@ -255,9 +274,9 @@ namespace Interaction.Signal
             {
                 var pin = signal.outputPins[0];
                 if (pin == null) return;
-                pin.wireType = mode;
-                Manager.ActiveChipEditor.pinAndWireInteraction.DestroyConnectedWires(pin);
-                signal.SetState(PinStates.AllLow(mode));
+                pin.wireType = newWireType;
+                Manager.PinAndWireInteraction.DestroyConnectedWires(pin);
+                signal.SetState(PinStates.AllLow(newWireType));
             }
         }
 
@@ -350,7 +369,7 @@ namespace Interaction.Signal
         public List<SignalReferenceHolder> SetGroupSize(int desiredGroupSize)
         {
             var list = new List<SignalReferenceHolder>();
-            var e = desiredGroupSize - GroupSize;
+            var e = desiredGroupSize - SignalNumber;
             switch (e)
             {
                 case < 0:

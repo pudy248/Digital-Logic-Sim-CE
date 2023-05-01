@@ -75,8 +75,7 @@ public class ChipInterfaceEditor : MonoBehaviour
 
     private void Start()
     {
-        PreviewSignal =
-            new SignalInteractionPreview(SignalBuilder.Build(InputHelper.MouseWorldPos.y, 1).obj, transform);
+        PreviewSignal = new SignalInteractionPreview(SignalBuilder.Build(InputHelper.MouseWorldPos.y, 1,Pin.WireType.Simple,false).obj, transform);
         DesiredGroupSize = 1;
         ScalingManager.i.OnScaleChange += UpdateScale;
         CreateGroup.i.onGroupSizeSettingPressed += OnGroupSizeSettingPressed;
@@ -98,7 +97,7 @@ public class ChipInterfaceEditor : MonoBehaviour
 
     public ChipSignal LoadSignal(ChipSignal signal, float y)
     {
-        var Chip = AddSignal(y, 1, false).Signals.ChipSignals[0];
+        var Chip = AddSignal(y, 1,signal.wireType, false).Signals.ChipSignals[0];
         return Chip;
     }
 
@@ -142,16 +141,16 @@ public class ChipInterfaceEditor : MonoBehaviour
         if (InputHelper.CompereTagObjectUnderMouse2D(ProjectTags.InterfaceMask, ProjectLayer.Default)) return;
 
 
-        AddSignal(InputHelper.MouseWorldPos.y, DesiredGroupSize);
+        AddSignal(InputHelper.MouseWorldPos.y,  DesiredGroupSize);
         DesiredGroupSize = 1;
 
 
         OnChipsAddedOrDeleted?.Invoke();
     }
 
-    private SignalInteraction AddSignal(float yPos, int groupSize, bool focusRequired = true)
+    private SignalInteraction AddSignal(float yPos, int groupSize, Pin.WireType wireType = Pin.WireType.Simple ,bool focusRequired = true)
     {
-        var Interactable = SignalBuilder.Build(yPos, groupSize, focusRequired);
+        var Interactable = SignalBuilder.Build(yPos, groupSize,wireType, focusRequired);
         SignalsByID.Add(Interactable.id, Interactable.obj);
         return Interactable.obj;
     }

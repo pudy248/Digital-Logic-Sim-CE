@@ -38,6 +38,7 @@ public class WireDisplay : MonoBehaviour, IThemeSettable
 
         mat = LineRenderer.material;
         mat.color = editCol;
+        RegisterEvent();
     }
 
 
@@ -48,7 +49,6 @@ public class WireDisplay : MonoBehaviour, IThemeSettable
         CurrentStatusColor = CurrentTheme.Low;
 
 
-        RegisterEvent();
         NormalAppearance();
     }
 
@@ -104,7 +104,7 @@ public class WireDisplay : MonoBehaviour, IThemeSettable
             CurrentTheme = _signalPalette.GetDefaultTheme();
         }
 
-        mat.color = CurrentTheme.GetColour(PinStates.AllLow(Pin.WireType.Simple))[0];
+        mat.color = CurrentTheme.GetColour(PinStates.AllLow(Pin.WireType.Simple));
     }
 
 
@@ -114,7 +114,7 @@ public class WireDisplay : MonoBehaviour, IThemeSettable
     {
         if (!Placed) return;
 
-        CurrentStatusColor = CurrentTheme.GetColour(pinState, wireType)[0];
+        CurrentStatusColor = CurrentTheme.GetColour(pinState, wireType);
         mat.color = IsSimulationActive ? CurrentStatusColor : CurrentTheme.Low;
     }
 

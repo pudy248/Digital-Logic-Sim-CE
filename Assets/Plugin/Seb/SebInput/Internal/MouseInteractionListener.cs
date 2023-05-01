@@ -42,13 +42,14 @@ namespace SebInput.Internal
 
 		public void OnMousePressDown(MouseEventSystem.MouseButton mouseButton)
 		{
-			if (mouseButton == MouseEventSystem.MouseButton.Left)
+			switch (mouseButton)
 			{
-				LeftMouseDown?.Invoke();
-			}
-			else if (mouseButton == MouseEventSystem.MouseButton.Right)
-			{
-				RightMouseDown?.Invoke();
+				case MouseEventSystem.MouseButton.Left:
+					LeftMouseDown?.Invoke();
+					break;
+				case MouseEventSystem.MouseButton.Right:
+					RightMouseDown?.Invoke();
+					break;
 			}
 		}
 		

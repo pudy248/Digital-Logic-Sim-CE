@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Core;
-using Plugin.VitoBarra.Reflection;
 using UnityEditor.UI;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -21,7 +20,7 @@ public class Manager : MonoBehaviour
     public static Manager instance;
     private ChipEditorMode _chipEditorMode;
 
-    public  ChipEditorMode ChipEditorMode
+    private  ChipEditorMode ChipEditorMode
     {
         get => _chipEditorMode;
         set
@@ -31,11 +30,12 @@ public class Manager : MonoBehaviour
         }
     }
 
+    //Event
     public event Action<ChipEditorMode> OnEditorModeChage;
     public event Action<SpawnableChip> customChipCreated;
     public event Action<SpawnableChip> customChipUpdated;
-    
     public event Action OnEditorClear; 
+    
 
     public ChipEditor chipEditorPrefab;
     public Wire wirePrefab;
@@ -45,6 +45,12 @@ public class Manager : MonoBehaviour
     [FormerlySerializedAs("UIManager")] public MenuManager menuManager;
 
     private ChipEditor activeChipEditor;
+    //Interaction Access
+    public static ChipEditor ActiveChipEditor => instance.activeChipEditor;
+    public static PinAndWireInteraction PinAndWireInteraction => instance.activeChipEditor.pinAndWireInteraction;
+    public static ChipInteraction ChipInteraction => instance.activeChipEditor.chipInteraction;
+    public static ChipInterfaceEditor InputsEditor => instance.activeChipEditor.inputsEditor;
+    public static ChipInterfaceEditor OutputsEditor => instance.activeChipEditor.outputsEditor;
 
     void Awake()
     {
@@ -81,7 +87,7 @@ public class Manager : MonoBehaviour
         }
     }
 
-    public static ChipEditor ActiveChipEditor => instance.activeChipEditor;
+
 
     public Chip GetChipPrefab(Chip chip)
     {

@@ -19,6 +19,6 @@ public class WireEvent : MonoBehaviour
 
     private void Start()
     {
-        Manager.ActiveChipEditor.pinAndWireInteraction.RegisterWire(MouseInteraction);
+        Manager.PinAndWireInteraction.RegisterWire(MouseInteraction);
     }
 }

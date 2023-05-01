@@ -2,10 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
-using Plugin.VitoBarra.TextVerifier;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using VitoBarra.Utils.TextVerifier;
 
 public class ClockMenu : MonoBehaviour
 {

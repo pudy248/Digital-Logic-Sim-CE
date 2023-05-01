@@ -59,16 +59,20 @@ public class Palette : ScriptableObject
         public Color Tristate;
         public float DisplayPriority;
 
-        public Color[] GetColour(PinStates states, Pin.WireType wireType = Pin.WireType.Simple, bool useTriStateCol = true)
+
+        public Color GetColour(PinStates states, Pin.WireType wireType = Pin.WireType.Simple,
+            bool useTriStateCol = true)
         {
-            return states?.Select(
-                x => x switch
+            if (states.Count == 1)
+                return states[0] switch
                 {
                     PinState.HIGH => GetHigh(wireType),
                     PinState.LOW => Low,
                     _ => useTriStateCol ? Tristate : Low
-                }
-            ).ToArray();
+                };
+
+            var e = states.Where(x => x == PinState.HIGH).ToList();
+            return e.Count > 0 ? GetHigh(wireType) : Low;
         }
 
 

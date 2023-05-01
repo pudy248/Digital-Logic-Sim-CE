@@ -22,7 +22,7 @@ public class DecimalDisplay : MonoBehaviour
         int decimalValue = 0;
         for (int i = 0; i < signals.Count; i++)
         {
-            var signalState = signals[signals.Count - 1 - i].currentState[0];
+            var signalState = signals[signals.Count - 1 - i].State[0];
             if (useTwosComplement && i == signals.Count - 1)
                 decimalValue |= (-(signalState.Toint() << i));
             else

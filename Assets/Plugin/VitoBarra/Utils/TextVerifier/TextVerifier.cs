@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 
-namespace Plugin.VitoBarra.TextVerifier
+namespace VitoBarra.Utils.TextVerifier
 {
     public static class TextVerifier
     {

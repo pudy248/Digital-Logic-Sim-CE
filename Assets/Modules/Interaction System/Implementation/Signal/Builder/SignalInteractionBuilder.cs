@@ -33,12 +33,13 @@ namespace Interaction.Signal
 
   
 
-        public (int id,SignalInteraction obj) Build(float  yPos, int desiredGroupSize,bool RequiredFocus= true,bool DisplayEnabled = true)
+        public (int id,SignalInteraction obj) Build(float  yPos, int desiredGroupSize,Pin.WireType wireType = Pin.WireType.Simple,bool RequiredFocus= true, bool DisplayEnabled = true)
         {
             var ContaierPosition = new Vector3(xContainer, yPos, zContainer);
             var SignalInteractable = GameObject.Instantiate(SignalInteractablePref,SignalHolder);
             SignalInteractable.transform.SetPositionAndRotation(ContaierPosition, SignalInteractable.transform.rotation);
-            SignalInteractable.SetUpCreation(desiredGroupSize, BoundsBottom, BoundsTop, ContaierPosition, OnDeleteChip,editorInterfaceType,RequiredFocus,DisplayEnabled);
+            SignalInteractable.init(wireType,BoundsBottom,BoundsTop,editorInterfaceType,ContaierPosition,DisplayEnabled);
+            SignalInteractable.SetUpCreation(OnDeleteChip, desiredGroupSize, RequiredFocus);
 
             return (NextGroupID++,SignalInteractable);
         }

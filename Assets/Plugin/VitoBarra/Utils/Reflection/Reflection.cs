@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Reflection;
 
-namespace Plugin.VitoBarra.Reflection
+namespace VitoBarra.Utils.Reflection
 {
     public static class Reflection
     {

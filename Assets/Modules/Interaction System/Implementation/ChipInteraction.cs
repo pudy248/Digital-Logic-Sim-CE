@@ -2,6 +2,8 @@
 using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using VitoBarra.System.Interaction;
 
 public class ChipInteraction : Interactable
 {
@@ -17,8 +19,7 @@ public class ChipInteraction : Interactable
     public event System.Action<Chip> onDeleteChip;
     public event System.Action onChipMovement;
 
-    public static ChipInteraction i;
-    
+
     public BoxCollider2D chipArea;
     public Transform chipHolder;
     public LayerMask chipMask;
@@ -37,7 +38,7 @@ public class ChipInteraction : Interactable
     public static List<Chip> selectedChips;
     Vector2 selectionBoxStartPos;
     Mesh selectionMesh;
-    Vector3[] selectedChipsOriginalPos; 
+    Vector3[] selectedChipsOriginalPos;
 
     [HideInInspector] public List<Pin> visiblePins;
 
@@ -57,7 +58,6 @@ public class ChipInteraction : Interactable
         MeshShapeCreator.CreateQuadMesh(ref selectionMesh);
 
         OnFocusLost += FocusLostHandler;
-        i = this;
     }
 
     public override void OrderedUpdate()
@@ -84,9 +84,13 @@ public class ChipInteraction : Interactable
         DrawSelectedChipBounds();
     }
 
-    public Pin[] UnconnectedInputPins => (from chip in allChips from pin in chip.inputPins where pin.wireType == Pin.WireType.Simple && !pin.HasParent select pin).ToArray();
+    public Pin[] UnconnectedInputPins => (from chip in allChips
+        from pin in chip.inputPins
+        where pin.wireType == Pin.WireType.Simple && !pin.HasParent
+        select pin).ToArray();
 
-    public Pin[] UnconnectedOutputPins => (from chip in allChips from pin in chip.outputPins where pin.childPins.Count == 0 select pin).ToArray();
+    public Pin[] UnconnectedOutputPins =>
+        (from chip in allChips from pin in chip.outputPins where pin.childPins.Count == 0 select pin).ToArray();
 
     public Chip LoadChip(Chip chipPref, Vector2 pos)
     {
@@ -100,6 +104,7 @@ public class ChipInteraction : Interactable
         {
             pin.NotifyStateChange();
         }
+
         return chip;
     }
 
@@ -151,15 +156,24 @@ public class ChipInteraction : Interactable
         }
     }
 
+    public bool IsSelecting;
+
     void HandleSelection()
     {
         Vector2 mousePos = InputHelper.MouseWorldPos;
 
         // Left mouse down. Handle selecting a chip, or starting to draw a selection
         // box.
-        if (!Input.GetMouseButtonDown(0) || InputHelper.MouseOverUIObject() || InputHelper.CompereTagObjectUnderMouse2D(ProjectTags.InterfaceMask, ProjectLayer.Default)) return;
+        if (!Input.GetMouseButtonDown(0) || InputHelper.MouseOverUIObject() ||
+            InputHelper.CompereTagObjectUnderMouse2D(ProjectTags.InterfaceMask, ProjectLayer.Default))
+        {
+            IsSelecting = false;
+            return;
+        }
 
         if (!RequestFocus()) return;
+
+        IsSelecting = true;
 
         selectionBoxStartPos = mousePos;
         var objectUnderMouse = InputHelper.GetObjectUnderMouse2D(chipMask);
@@ -262,6 +276,7 @@ public class ChipInteraction : Interactable
                     (Vector2)selectedChipsOriginalPos[i] + deltaMouse;
                 SetDepth(selectedChips[i], dragDepth + selectedChipsOriginalPos[i].z);
             }
+
             onChipMovement?.Invoke();
         }
 
@@ -460,7 +475,7 @@ public class ChipInteraction : Interactable
     }
 
     public override bool CanReleaseFocus() =>
-        currentState != State.PlacingNewChips && currentState != State.MovingOldChips;
+        currentState != State.PlacingNewChips && currentState != State.MovingOldChips && !IsSelecting;
 
     private void FocusLostHandler()
     {

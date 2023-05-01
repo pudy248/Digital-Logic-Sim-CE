@@ -108,7 +108,7 @@ MonoBehaviour:
     OverrideWidthAndHeight: 0
     Width: 1
     Height: 1
-  ChipType: 0
+  ChipType: 2
   DefaultEnabled: 1
 --- !u!114 &6606947845643982294
 MonoBehaviour:

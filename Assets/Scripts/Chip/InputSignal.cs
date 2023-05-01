@@ -13,31 +13,33 @@ using UnityEngine.Serialization;
 [RequireComponent(typeof(SignalDisplay))]
 public class InputSignal : ChipSignal
 {
-    public void ToggleActive()
+    private void ToggleActive()
     {
-        if (currentState[0] == PinState.HIGH)
-            currentState[0] = PinState.LOW;
+        if (wireType != Pin.WireType.Simple) return;
+
+        if (State[0] == PinState.HIGH)
+            State[0] = PinState.LOW;
         else
-            currentState[0] = PinState.HIGH;
+            State[0] = PinState.HIGH;
         NotifyStateChange();
     }
 
     public void SetState(PinStates pinState)
     {
-        currentState = pinState;
+        State = pinState;
         NotifyStateChange();
     }
 
     public void SendSignal(PinStates signal)
     {
-        currentState = signal;
+        State = signal;
         outputPins[0].ReceiveSignal(signal);
         NotifyStateChange();
     }
 
     public void SendSignal()
     {
-        outputPins[0].ReceiveSignal(currentState);
+        outputPins[0].ReceiveSignal(State);
     }
 
 
@@ -50,20 +52,12 @@ public class InputSignal : ChipSignal
     protected override void Start()
     {
         base.Start();
-        GetComponentInChildren<SignalEvent>().MouseInteraction.LeftMouseDown += LeftClickHandler;
-    }
-
-
-    void LeftClickHandler()
-    {
-        // Allow only to click on single wires, not on bus wires
-        if (outputPins.All(x => x.wireType == Pin.WireType.Simple))
-            ToggleActive();
+        GetComponentInChildren<SignalEvent>().MouseInteraction.LeftMouseDown += ToggleActive;
     }
 
     public void SetBusStatus(uint state)
     {
-        currentState = new PinStates(state);
+        State = new PinStates(state);
         NotifyStateChange();
     }
 }
