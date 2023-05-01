@@ -143,16 +143,16 @@ public class EEPROM : BuiltinChip
 
 	protected override void ProcessOutput()
 	{
-		PinState address = inputPins[1].State;
-		uint index = address.ToUint() * 2;
+		PinStates address = inputPins[1].State;
+		uint index = address.ToUInt() * 2;
 		uint data = (uint)(contents[index] << 8 | contents[index + 1]);
 
 		//reading
-		outputPins[0].ReceiveSignal((PinState)data);
+		outputPins[0].ReceiveSignal(new PinStates(data));
 
-		if (inputPins[0].State <= 0) return;
+		if (inputPins[0].State[0] !=PinState.HIGH) return;
 		//writing
-		uint newData = inputPins[2].State.ToUint();
+		uint newData = inputPins[2].State.ToUInt();
 
 		if (newData == data) return;
 		

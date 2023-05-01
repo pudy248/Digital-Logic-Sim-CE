@@ -8,7 +8,6 @@ using UnityEngine;
 [RequireComponent(typeof(TMP_Text))]
 public class DecimalDisplay : MonoBehaviour
 {
-    
     private TMP_Text text;
 
 
@@ -17,16 +16,17 @@ public class DecimalDisplay : MonoBehaviour
         text = GetComponent<TMP_Text>();
     }
 
-    public void UpdateDecimalDisplay(IList<ChipSignal> signals ,bool useTwosComplement)
+
+    public void UpdateDecimalDisplay(IList<ChipSignal> signals, bool useTwosComplement)
     {
         int decimalValue = 0;
         for (int i = 0; i < signals.Count; i++)
         {
-            var signalState = signals[signals.Count - 1 - i].currentState;
+            var signalState = signals[signals.Count - 1 - i].currentState[0];
             if (useTwosComplement && i == signals.Count - 1)
-                decimalValue |= (-((int)signalState << i));
+                decimalValue |= (-(signalState.Toint() << i));
             else
-                decimalValue |= (int)(signalState.ToUint() << i);
+                decimalValue |= (signalState.Toint() << i);
         }
 
         text.text = decimalValue + "";

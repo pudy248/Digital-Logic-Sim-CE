@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using DLS.Simulation;
 using UnityEngine;
 
 public class Simulation : MonoBehaviour
 {
-    public event Action<bool> OnSimulationTogle; 
+    public event Action<bool> OnSimulationTogle;
     public static Simulation instance;
 
     public static int simulationFrame { get; private set; }
@@ -28,14 +29,12 @@ public class Simulation : MonoBehaviour
             ResumeSimulation();
         else
             StopSimulation();
-
     }
 
     void Awake()
     {
         instance = this;
         simulationFrame = 0;
-
     }
 
     private void Start()
@@ -47,7 +46,7 @@ public class Simulation : MonoBehaviour
     {
         // If simulation is off StepSimulation is not executed.
         if (!(Time.time - lastStepTime > minStepTime) || !active) return;
-        
+
         lastStepTime = Time.time;
         simulationFrame++;
         StepSimulation();
@@ -76,11 +75,8 @@ public class Simulation : MonoBehaviour
     private void ClearOutputSignals()
     {
         List<ChipSignal> outputSignals = chipEditor.outputsEditor.GetAllSignals();
-        for (int i = 0; i < outputSignals.Count; i++)
-        {
-            outputSignals[i].NotifyStateChange();
-            outputSignals[i].currentState = 0;
-        }
+        foreach (var outsignal in outputSignals)
+            outsignal.ClearStates();
     }
 
     private void ProcessInputs()

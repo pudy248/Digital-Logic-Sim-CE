@@ -1,7 +1,8 @@
 ﻿using System;
+using Interaction.Signal;
 using UnityEngine;
 
-namespace Interaction.Builder
+namespace Interaction.Signal
 {
     public class SignalInteractionBuilder
     {
@@ -14,9 +15,9 @@ namespace Interaction.Builder
         private float zContainer;
         
         int NextGroupID = 0;
-        ChipInterfaceEditor.EditorInterfaceType editorInterfaceType;
+        EditorInterfaceType editorInterfaceType;
         
-        public SignalInteractionBuilder(SignalInteraction signalInteractablePref, Transform signalHolder, Action<Chip> onDeleteChip,float boundsBottom,float boundsTop,float _xContainer,float _zContainer,ChipInterfaceEditor.EditorInterfaceType _editorInterfaceType)
+        public SignalInteractionBuilder(SignalInteraction signalInteractablePref, Transform signalHolder, Action<Chip> onDeleteChip,float boundsBottom,float boundsTop,float _xContainer,float _zContainer, EditorInterfaceType _editorInterfaceType)
         {
             SignalInteractablePref = signalInteractablePref;
             SignalHolder = signalHolder;
@@ -32,12 +33,12 @@ namespace Interaction.Builder
 
   
 
-        public (int id,SignalInteraction obj) Build(float  yPos, int desiredGroupSize)
+        public (int id,SignalInteraction obj) Build(float  yPos, int desiredGroupSize,bool RequiredFocus= true,bool DisplayEnabled = true)
         {
             var ContaierPosition = new Vector3(xContainer, yPos, zContainer);
             var SignalInteractable = GameObject.Instantiate(SignalInteractablePref,SignalHolder);
             SignalInteractable.transform.SetPositionAndRotation(ContaierPosition, SignalInteractable.transform.rotation);
-            SignalInteractable.SetUpCreation(desiredGroupSize, BoundsBottom, BoundsTop, ContaierPosition, OnDeleteChip,editorInterfaceType);
+            SignalInteractable.SetUpCreation(desiredGroupSize, BoundsBottom, BoundsTop, ContaierPosition, OnDeleteChip,editorInterfaceType,RequiredFocus,DisplayEnabled);
 
             return (NextGroupID++,SignalInteractable);
         }

@@ -43,15 +43,14 @@ public class CustomChip : SpawnableChip
         }
         foreach (Pin pin in unconnectedInputs)
         {
-            pin.ReceiveSignal(0);
+            pin.ReceiveSignal(PinStates.AllLow());
             pin.chip.ReceiveInputSignal(pin);
         }
 
         // Pass processed signals on to ouput pins
         for (int i = 0; i < outputPins.Count; i++)
         {
-            PinState outputState = outputSignals[i].inputPins[0].State;
-            outputPins[i].ReceiveSignal(outputState);
+            outputPins[i].ReceiveSignal(outputSignals[i].inputPins[0].State);
         }
     }
 }

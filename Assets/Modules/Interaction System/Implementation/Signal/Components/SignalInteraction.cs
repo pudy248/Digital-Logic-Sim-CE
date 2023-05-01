@@ -11,7 +11,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.Rendering.VirtualTexturing;
 using UnityEngine.Serialization;
 
-namespace Interaction
+namespace Interaction.Signal
 {
     public class SignalInteraction : Interactable
     {
@@ -22,29 +22,32 @@ namespace Interaction
 
 
         //Work Variable
-        public List<ChipSignal> Signals { get; private set; }
-        private int GroupSize;
+        public SignalReferenceHolderList Signals { get; private set; }
+        public int GroupSize { get; private set; }
         private int ID;
+
 
         float BoundsTop;
         float BoundsBottom;
+        private Vector3 PinContainers;
 
-        public ChipInterfaceEditor.EditorInterfaceType EditorInterfaceType { get; private set; }
+        public EditorInterfaceType EditorInterfaceType { get; private set; }
 
 
         //Event
         public event Action<Chip> OnDeleteChip;
-        public event Action<Vector3, ChipInterfaceEditor.EditorInterfaceType> OnDragig;
+        public event Action<Vector3, EditorInterfaceType> OnDragig;
         [CanBeNull] public event Action OnDeleteInteraction;
 
 
         //Property 
         public bool IsGroup => GroupSize > 1;
-        public string SignalName => Signals[0].signalName;
+        public string SignalName => Signals.ChipSignals[0].signalName;
         public bool UseTwosComplement { get; private set; } = true;
-        public Pin.WireType WireType => Signals[0].wireType;
+        public Pin.WireType WireType => Signals.ChipSignals[0].wireType;
 
-        public Vector3 GroupCenter => (Signals[0].transform.position + Signals[^1].transform.position) / 2;
+        public Vector3 GroupCenter => (Signals.ChipSignals[0].transform.position +
+                                       Signals.ChipSignals[^1].transform.position) / 2;
 
 
         private void Awake()
@@ -54,47 +57,46 @@ namespace Interaction
 
         private void Start()
         {
-            ScalingManager.i.OnScaleChange += UpdateScaleAndPosition;
+            ScalingManager.i.OnScaleChange += UpdateCenterPosition;
         }
 
         private void OnDestroy()
         {
-            ScalingManager.i.OnScaleChange -= UpdateScaleAndPosition;
+            ScalingManager.i.OnScaleChange -= UpdateCenterPosition;
         }
 
         public void SetUpCreation(int _groupSize, float _boundsBottom, float _boundsTop,
             Vector3 _pinContainers, Action<Chip> _onDeleteChip,
-            ChipInterfaceEditor.EditorInterfaceType _editorInterfaceType)
+            EditorInterfaceType _editorInterfaceType, bool RequireFocus = true,
+            bool DisplayEnabled = true)
         {
             if (!DecimalDisplay)
                 DecimalDisplay = GetComponentInChildren<DecimalDisplay>(true);
-
             EditorInterfaceType = _editorInterfaceType;
             GroupSize = _groupSize;
             BoundsBottom = _boundsBottom;
             BoundsTop = _boundsTop;
-            Signals = new List<ChipSignal>(GroupSize);
+            PinContainers = _pinContainers;
+            Signals = new SignalReferenceHolderList(GroupSize);
 
             for (var i = 0; i < GroupSize; i++)
             {
-                var spawnedSignal = Instantiate(signalPrefab, _pinContainers, Quaternion.identity, transform);
-                Signals.Add(spawnedSignal);
+                var spawnedSignal = CreateSignal();
 
-                if (!IsGroup) continue;
+                var e = Signals.AddSignals(spawnedSignal);
+                RegisterHandler(e.HandleEvent);
 
-                spawnedSignal.GetComponent<ChipSignal>().OnStateChange += (_, _) =>
-                    DecimalDisplay.UpdateDecimalDisplay(Signals, UseTwosComplement);
+                if (!IsGroup || !DisplayEnabled) continue;
+                spawnedSignal.OnStateChange += (_, _) =>
+                    DecimalDisplay.UpdateDecimalDisplay(Signals.ChipSignals, UseTwosComplement);
             }
 
-            if (IsGroup)
-            {
+            if (IsGroup && DisplayEnabled)
                 DecimalDisplay.gameObject.SetActive(true);
-            }
 
 
-            UpdateScaleAndPosition();
-            SetPinInteractable();
-            RegisterEventToAllHandle();
+            UpdateCenterPosition();
+            SetPinInteractable(true);
 
             OnDeleteChip += _onDeleteChip;
 
@@ -102,38 +104,48 @@ namespace Interaction
             OnFocusLost += MenuManager.instance.CloseMenu;
             OnFocusObtained += OpenPropertyMenu;
 
-            RequestFocus();
+            if (RequireFocus)
+                RequestFocus();
         }
 
-
-        private void RegisterEventToAllHandle()
+        private ChipSignal CreateSignal()
         {
-            foreach (var Handle in Signals.Select(x => x.GetComponentInChildren<HandleEvent>()))
-            {
-                var HandlerDisplais = Signals.Select(x => x.GetComponentInChildren<SignalHandlerDisplay>());
-                foreach (var HandlerDisplay in HandlerDisplais)
-                {
-                    if (HandlerDisplay != null)
-                        HandlerDisplay.RegisterToHandleGroup(Handle);
-                }
-
-                Handle.OnHandleClick += () =>
-                {
-                    NotifyMovement();
-                    RequestFocus();
-                };
-
-                Handle.OnStartDrag += (pos) =>
-                {
-                    DragStartY = pos.y;
-                    centerDragStartDistance = DragStartY - GroupCenter.y;
-                    DragCancelled = false;
-                };
-
-                Handle.OnDrag += Drag;
-                Handle.OnStopDrag += () => DragStartY = 0;
-            }
+            return Instantiate(signalPrefab, PinContainers, Quaternion.identity, transform);
         }
+
+
+        private SignalReferenceHolder AddSignal()
+        {
+            GroupSize++;
+            return Signals.AddSignals(CreateSignal());
+        }
+
+        private void RemoveSignal()
+        {
+            Signals.RemoveSignals();
+            GroupSize--;
+        }
+
+
+        private void RegisterHandler(HandleEvent HandleEvent)
+        {
+            HandleEvent.OnHandleClick += () =>
+            {
+                NotifyMovement();
+                RequestFocus();
+            };
+
+            HandleEvent.OnStartDrag += (pos) =>
+            {
+                DragStartY = pos.y;
+                centerDragStartDistance = DragStartY - GroupCenter.y;
+                DragCancelled = false;
+            };
+
+            HandleEvent.OnDrag += Drag;
+            HandleEvent.OnStopDrag += () => DragStartY = 0;
+        }
+
 
         private void NotifyMovement()
         {
@@ -166,19 +178,12 @@ namespace Interaction
         }
 
 
-        public void UpdateScaleAndPosition()
+        private void UpdateCenterPosition()
         {
-            for (var i = 0; i < Signals.Count; i++)
-            {
-                var y = AdjustYForGroupMember(transform.position.y, i);
-                Signals[i].transform.SetYPos(y);
-            }
-
-            if (DecimalDisplay)
-                DecimalDisplay.transform.SetYPos(GroupCenter.y);
+            MoveCenterYPosition(transform.position.y);
         }
 
-        float AdjustYForGroupMember(float DesideredCeterY, int index)
+        private float AdjustYForGroupMember(float DesideredCeterY, int index)
         {
             var handleSizeY = ScalingManager.HandleSizeY;
             var GroupSpacing = ScalingManager.GroupSpacing;
@@ -207,54 +212,54 @@ namespace Interaction
                 BoundsTop - HandleSizeY / 2f);
         }
 
-        #endregion
-
-
-        private void SetPinInteractable()
-        {
-            foreach (var sig in Signals)
-                sig.SetInteractable(true);
-        }
-
-
-        private void MoveCenterYPosition(float NewYcenter)
+        public void MoveCenterYPosition(float NewYcenter)
         {
             for (var i = 0; i < Signals.Count; i++)
             {
                 var y = AdjustYForGroupMember(NewYcenter, i);
-                Signals[i].transform.SetYPos(y);
+                Signals[i].ChipSignal.transform.SetYPos(y);
             }
 
-            DecimalDisplay.transform.SetYPos(GroupCenter.y);
+            if (DecimalDisplay)
+                DecimalDisplay.transform.SetYPos(GroupCenter.y);
         }
 
-        public void ChangeWireType(int mode)
+        #endregion
+
+
+        public void SetPinInteractable(bool togle = true)
         {
-            // Change output pin wire mode
-            foreach (var sig in Signals)
-                sig.wireType = (Pin.WireType)mode;
-
-            foreach (var pin in Signals.SelectMany(x => x.inputPins))
-            {
-                pin.wireType = (Pin.WireType)mode;
-                Manager.ActiveChipEditor.pinAndWireInteraction.DestroyConnectedWires(pin);
-            }
-
-            // Change input pin wire mode
-            if (Signals[0] is not InputSignal) return;
-
-            foreach (InputSignal signal in Signals)
-            {
-                var pin = signal.outputPins[0];
-                if (pin == null) return;
-                pin.wireType = (Pin.WireType)mode;
-                Manager.ActiveChipEditor.pinAndWireInteraction.DestroyConnectedWires(pin);
-                signal.SetState(PinState.LOW);
-            }
+            foreach (var sig in Signals.ChipSignals)
+                sig.SetInteractable(togle);
         }
 
 
         #region Property
+
+        public void ChangeWireType(Pin.WireType mode)
+        {
+            // Change output pin wire mode
+            foreach (var sig in Signals.ChipSignals)
+                sig.wireType = mode;
+
+            foreach (var pin in Signals.ChipSignals.SelectMany(x => x.inputPins))
+            {
+                pin.wireType = mode;
+                Manager.ActiveChipEditor.pinAndWireInteraction.DestroyConnectedWires(pin);
+            }
+
+            // Change input pin wire mode
+            if (Signals.ChipSignals[0] is not InputSignal) return;
+
+            foreach (InputSignal signal in Signals.ChipSignals)
+            {
+                var pin = signal.outputPins[0];
+                if (pin == null) return;
+                pin.wireType = mode;
+                Manager.ActiveChipEditor.pinAndWireInteraction.DestroyConnectedWires(pin);
+                signal.SetState(PinStates.AllLow(mode));
+            }
+        }
 
         void OpenPropertyMenu()
         {
@@ -265,14 +270,21 @@ namespace Interaction
         public void UpdateGroupProperty(string NewName, bool twosComplementToggle)
         {
             // Update signal properties
-            foreach (ChipSignal Signal in Signals)
+            foreach (var Signal in Signals.ChipSignals)
             {
                 Signal.UpdateSignalName(NewName);
                 UseTwosComplement = twosComplementToggle;
             }
 
             if (IsGroup)
-                DecimalDisplay.UpdateDecimalDisplay(Signals, UseTwosComplement);
+                DecimalDisplay.UpdateDecimalDisplay(Signals.ChipSignals, UseTwosComplement);
+        }
+
+        public void SetBusValue(int state)
+        {
+            if (IsGroup) return;
+            if (Signals.ChipSignals[0] is InputSignal inputSignal)
+                inputSignal.SetBusStatus(state < 0 ? 0 : (uint)state);
         }
 
         #endregion
@@ -280,8 +292,10 @@ namespace Interaction
 
         public bool Contains(ChipSignal chip)
         {
-            return Signals.Contains(chip);
+            return Signals.ChipSignals.Contains(chip);
         }
+
+        #region Interaction
 
         public override void OrderedUpdate()
         {
@@ -292,7 +306,7 @@ namespace Interaction
         public override void DeleteCommand()
         {
             if (!DeleteAllowed) return;
-            foreach (ChipSignal selectedSignal in Signals)
+            foreach (var selectedSignal in Signals.ChipSignals)
             {
                 OnDeleteChip?.Invoke(selectedSignal);
 
@@ -313,6 +327,8 @@ namespace Interaction
             DeleteAllowed = true;
         }
 
+        #endregion
+
         private void OnDrawGizmos()
         {
             var dragStart = new Vector2(transform.position.x, DragStartY);
@@ -329,6 +345,28 @@ namespace Interaction
             Gizmos.color = Color.yellow;
 
             Gizmos.DrawLine(center, dragStart);
+        }
+
+        public List<SignalReferenceHolder> SetGroupSize(int desiredGroupSize)
+        {
+            var list = new List<SignalReferenceHolder>();
+            var e = desiredGroupSize - GroupSize;
+            switch (e)
+            {
+                case < 0:
+                    for (var i = 0; i < -e; i++)
+                        RemoveSignal();
+                    break;
+                case > 0:
+                    for (var i = 0; i < e; i++)
+                    {
+                        list.Add(AddSignal());
+                    }
+
+                    break;
+            }
+
+            return list;
         }
     }
 }

@@ -17,8 +17,8 @@ public class PinNameDisplayManager : MonoBehaviour
     {
         chipEditor = FindObjectOfType<ChipEditor>();
         editorDisplayOptions = FindObjectOfType<ChipEditorOptions>();
-        chipEditor.pinAndWireInteraction.onMouseOverPin += OnMouseOverPin;
-        chipEditor.pinAndWireInteraction.onMouseExitPin += OnMouseExitPin;
+        // chipEditor.pinAndWireInteraction.onMouseOverPin += OnMouseOverPin;
+        // chipEditor.pinAndWireInteraction.onMouseExitPin += OnMouseExitPin;
 
         pinNameDisplays = new List<PinNameDisplay>();
         pinsToDisplay = new List<Pin>();
@@ -87,7 +87,7 @@ public class PinNameDisplayManager : MonoBehaviour
             pinNameDisplays[i].Set(pins[i]);
         }
     }
-
+    
     void OnMouseOverPin(Pin pin)
     {
         highlightedPin = pin;

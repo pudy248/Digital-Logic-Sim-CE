@@ -20,8 +20,8 @@ public class XorGate : BuiltinChip
 
     protected override void ProcessOutput()
     {
-        PinState outputSignal = inputPins[0].State ^ inputPins[1].State;
-        outputPins[0].ReceiveSignal(outputSignal);
+        PinState outputSignal = inputPins[0].State[0] ^ inputPins[1].State[0];
+        outputPins[0].ReceiveSignal(PinStates.Getstates((outputSignal)));
     }
 
 }

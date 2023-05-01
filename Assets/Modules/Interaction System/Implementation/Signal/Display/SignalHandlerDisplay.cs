@@ -2,8 +2,10 @@
 using System.Threading;
 using UnityEngine;
 using UnityEngine.Serialization;
+using static EditorInterfaceType;
 
-namespace Interaction.Display
+
+namespace Interaction.Signal.Display
 {
     public enum HandleState
     {
@@ -11,10 +13,12 @@ namespace Interaction.Display
         Highlighted,
         Focused
     }
+
     public class SignalHandlerDisplay : MonoBehaviour
     {
         private Renderer HandlerRender;
         private SignalInteraction Interaction;
+        public EditorInterfaceType mode;
 
         private bool ColorCanChange;
 
@@ -24,9 +28,9 @@ namespace Interaction.Display
             HandlerRender = GetComponent<Renderer>();
             var Lissener = GetComponentInParent<HandleEvent>();
             RegisterToHandleGroup(Lissener);
-            
-            if(Interaction == null) return;
-            
+
+            if (Interaction == null) return;
+
             Interaction.OnFocusObtained += () =>
             {
                 ChangeHandleColor(HandleState.Focused);
@@ -38,12 +42,57 @@ namespace Interaction.Display
                 ColorCanChange = true;
             };
 
+            ScalingManager.i.OnScaleChange += UpdateScale;
+        }
+
+        private void Start()
+        {
+            UpdateScale();
+        }
+
+        private void OnDestroy()
+        {
+            ScalingManager.i.OnScaleChange -= UpdateScale;
+        }
+
+        public float offset = 0.33f;
+        public float fac = 1.1f;
+
+        private void UpdateScale()
+        {
+            transform.localScale =
+                new Vector3(transform.localScale.x, ScalingManager.HandleSizeY, transform.localScale.z);
+            var x = -ScalingManager.HandleSizeY / fac + offset;
+            transform.localPosition = new Vector3(x, transform.localPosition.y,
+                transform.localPosition.z);
+        }
+
+        private void OnValidate()
+        {
+            if (ScalingManager.i != null)
+                UpdateScale();
         }
 
         public void RegisterToHandleGroup(HandleEvent Lissener)
         {
-            Lissener.OnHandleEnter += () => CheckedChangeHandleColor(HandleState.Highlighted);
-            Lissener.OnHandleExit += () => CheckedChangeHandleColor(HandleState.Default);
+            Lissener.OnHandleEnter += HandlerOnOnHandleEnter;
+            Lissener.OnHandleExit += HandlerOnOnHandleExit;
+        }
+
+        public void UnregisterToHandleGroup(HandleEvent Lissener)
+        {
+            Lissener.OnHandleEnter -= HandlerOnOnHandleEnter;
+            Lissener.OnHandleExit -= HandlerOnOnHandleExit;
+        }
+
+        private void HandlerOnOnHandleEnter()
+        {
+            CheckedChangeHandleColor(HandleState.Highlighted);
+        }
+
+        private void HandlerOnOnHandleExit()
+        {
+            CheckedChangeHandleColor(HandleState.Default);
         }
 
 
@@ -56,21 +105,12 @@ namespace Interaction.Display
         private void ChangeHandleColor(HandleState handleState = HandleState.Default)
         {
             var materialReference = ThemeManager.Palette.PinInteractionPalette;
-            Material selectedMat;
-            switch (handleState)
+            HandlerRender.material.color = handleState switch
             {
-                case HandleState.Highlighted:
-                    HandlerRender.material.color = materialReference.HighlightedHandleCol;
-                    break;
-                case HandleState.Focused:
-                    HandlerRender.material.color = materialReference.FocusedHandleCol;
-                    break;
-                default:
-                    HandlerRender.material.color = materialReference.handleCol;
-                    break;
-            }
-
-            // HandlerRender.material = selectedMat;
+                HandleState.Highlighted => materialReference.HighlightedHandleCol,
+                HandleState.Focused => materialReference.FocusedHandleCol,
+                _ => materialReference.handleCol
+            };
         }
     }
 }

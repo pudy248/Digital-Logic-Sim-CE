@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Plugin.VitoBarra.TextVerifier;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -21,7 +22,7 @@ public class ClockMenu : MonoBehaviour
 
     public void FinishedEdit(string str)
     {
-        var HzStr = Regex.Match(str, @"^\d+([\.,]\d+)?").Value;
+        var HzStr = TextVerifier.ExtractFloat(str);
         HzInputField.text = (HzStr == "" ? CurrentEditingClock.Hz.ToString() : HzStr )+ "Hz";
     }
     public void SetClockToEdit(Clock Clock)
@@ -33,7 +34,7 @@ public class ClockMenu : MonoBehaviour
     {
         if (CurrentEditingClock == null) return;
 
-        var HzStr = Regex.Match(HzInputField.text, @"^\d+([\.,]\d+)?").Value.Replace(",", ".");
+        var HzStr = TextVerifier.ExtractFloat(HzInputField.text).Replace(",", ".");
         CultureInfo ci = (CultureInfo)CultureInfo.CurrentCulture.Clone();
         ci.NumberFormat.CurrencyDecimalSeparator = ".";
         CurrentEditingClock.Hz = float.Parse(HzStr, NumberStyles.Any, ci);

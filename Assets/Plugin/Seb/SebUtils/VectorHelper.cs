@@ -27,20 +27,5 @@ namespace SebUtils
 			}
 			return vector3s;
 		}
-
-		public static Vector3 WithX(Vector3 vec, float x)
-		{
-			return new Vector3(x, vec.y, vec.z);
-		}
-
-		public static Vector3 WithY(Vector3 vec, float y)
-		{
-			return new Vector3(vec.x, y, vec.z);
-		}
-
-		public static Vector3 WithZ(Vector2 vec, float z)
-		{
-			return new Vector3(vec.x, vec.y, z);
-		}
 	}
 }

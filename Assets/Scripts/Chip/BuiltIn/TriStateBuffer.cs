@@ -21,9 +21,10 @@ public class TriStateBuffer : BuiltinChip
     
     protected override void ProcessOutput()
     {
-        var data = inputPins[0].State;
-        var enable = inputPins[1].State;
+        var data = inputPins[0].State[0];
+        var enable = inputPins[1].State[0];
+        var pinState = (enable == PinState.HIGH) ? data : PinState.FLOATING;
 
-        outputPins[0].ReceiveSignal(enable == PinState.HIGH ? data : PinState.FLOATING);
+        outputPins[0].ReceiveSignal(PinStates.Getstates(pinState));
     }
 }

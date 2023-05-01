@@ -63,7 +63,7 @@ public class Chip : MonoBehaviour
             }
             else if (!pin.HasParent)
             {
-                pin.ReceiveSignal(0);
+                pin.ReceiveZero();
                 // ReceiveInputSignal (inputPins[i]);
             }
         }

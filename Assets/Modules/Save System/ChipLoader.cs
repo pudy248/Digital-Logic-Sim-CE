@@ -208,7 +208,7 @@ public static class ChipLoader
                 pin.cyclic = savedPin.isCylic;
 
                 if (!Pin.TryConnect(connectedPin, pin)) continue;
-                Wire loadedWire = chipEditor.pinAndWireInteraction.CreateAndLoadWire(connectedPin, pin);
+                Wire loadedWire = chipEditor.LoadWire(connectedPin, pin);
                 wiresToLoad.Add(loadedWire);
             }
         }

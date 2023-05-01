@@ -7,7 +7,7 @@ namespace SebInput
 {
 	public class MouseInteraction<T>
 	{
-
+		public T Context { get; private set; }
 		// Terminology: composite collider => the set of 2D colliders attached to this object and its child objects
 
 		// Called when mouse enters composite collider
@@ -36,7 +36,8 @@ namespace SebInput
 		public MouseInteraction(GameObject listenerTarget, T eventContext)
 		{
 			var listener = listenerTarget.AddComponent<MouseInteractionListener>();
-
+			Context = eventContext;
+			
 			listener.MouseEntered += () => { MouseIsOver = true; MouseEntered?.Invoke(eventContext); };
 			listener.MouseExitted += () => { MouseIsOver = false; MouseExitted?.Invoke(eventContext); };
 			listener.LeftMouseDown += () => LeftMouseDown?.Invoke(eventContext);

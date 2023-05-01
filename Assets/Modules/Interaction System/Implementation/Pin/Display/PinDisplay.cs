@@ -21,12 +21,9 @@ public class PinDisplay : MonoBehaviour
     {
         renderer = GetComponent<Renderer>();
 
-        var Pin = GetComponentInParent<Pin>();
-        // Pin.OnStateChange += UpdateColor;
-        Pin.OnSelection += SelectionAppearance;
-        Pin.OnDeselection += NormalAppearance;
-        ScalingManager.i.OnScaleChange += UpdateScale;
+
     }
+    
 
     private void OnDestroy()
     {
@@ -36,6 +33,14 @@ public class PinDisplay : MonoBehaviour
     private void Start()
     {
         InteractionPalette = ThemeManager.Palette.PinInteractionPalette;
+        
+        var Pin = GetComponent<PinEvent>();
+        // Pin.OnStateChange += UpdateColor;
+        Pin.MouseInteraction.MouseEntered += (_) => SelectionAppearance();
+        Pin.MouseInteraction.MouseExitted += (_) => NormalAppearance();
+        ScalingManager.i.OnScaleChange += UpdateScale;
+        
+        
         renderer.material.color = InteractionPalette.PinDefaultColor;
         UpdateScale();
     }

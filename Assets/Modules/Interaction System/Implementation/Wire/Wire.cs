@@ -5,15 +5,15 @@ using DLS.Simulation;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-public class Wire : MonoBehaviour
+public class Wire : Interactable
 {
     //Event
-    public event Action OnSelection;
-    public event Action OnDeSelection;
-
     public event Action<List<Vector2>> OnWireChange;
 
-    public event Action OnPlacing; 
+    public event Action OnPlacing;
+
+    public event Action<Wire> OnWireDestroy;
+    
 
     bool wireConnected;
 
@@ -35,11 +35,13 @@ public class Wire : MonoBehaviour
     private void OnEnable()
     {
         ChipInteraction.i.onChipMovement += UpdateWirePos;
+        ScalingManager.i.OnScaleChange += UpdateWirePos;
     }
 
     private void OnDestroy()
     {
         ChipInteraction.i.onChipMovement -= UpdateWirePos;
+        ScalingManager.i.OnScaleChange -= UpdateWirePos;
     }
 
     public void SetAnchorPoints(Vector2[] newAnchorPoints)
@@ -48,7 +50,7 @@ public class Wire : MonoBehaviour
         NotifyWireChange();
     }
 
-    private void UpdateWirePos()
+    public void UpdateWirePos()
     {
         if (!wireConnected) return;
         
@@ -141,7 +143,6 @@ public class Wire : MonoBehaviour
 
         anchorPoints.Add(inputPoint);
 
-        // UpdateSmoothedLine();
         NotifyWireChange();
     }
 
@@ -158,6 +159,14 @@ public class Wire : MonoBehaviour
 
         if (endPin.pinType == Pin.PinType.ChipOutput)
             SwapStartEndPoints();
+    }
+
+    public void DestroyWire()
+    {
+        Pin.RemoveConnection(startPin, endPin);
+        endPin.ReceiveZero();
+        Destroy(gameObject);
+        OnWireDestroy?.Invoke(this);
     }
 
     void SwapStartEndPoints()
@@ -178,7 +187,6 @@ public class Wire : MonoBehaviour
     {
         anchorPoints[^1] = ProcessPoint(endPointWorldSpace);
         NotifyWireChange();
-        //UpdateSmoothedLine();
     }
 
     // Add anchor point (for when initially placing the wire)
@@ -189,14 +197,6 @@ public class Wire : MonoBehaviour
         NotifyWireChange();
     }
 
-
-    public void SetSelectionState(bool selected)
-    {
-        if (selected)
-            OnSelection?.Invoke();
-        else
-            OnDeSelection?.Invoke();
-    }
 
     Vector2 ProcessPoint(Vector2 endPointWorldSpace)
     {
@@ -220,5 +220,13 @@ public class Wire : MonoBehaviour
         return endPointWorldSpace;
     }
 
-    
+
+    public override void OrderedUpdate()
+    {
+    }
+
+    public override void DeleteCommand()
+    {
+        DestroyWire();
+    }
 }

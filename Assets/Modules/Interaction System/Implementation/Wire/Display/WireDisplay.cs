@@ -27,6 +27,7 @@ public class WireDisplay : MonoBehaviour, IThemeSettable
     public bool Placed;
     float depth;
 
+
     bool IsSimulationActive => Simulation.instance.active;
 
 
@@ -37,8 +38,6 @@ public class WireDisplay : MonoBehaviour, IThemeSettable
 
         mat = LineRenderer.material;
         mat.color = editCol;
-
-        RegisterEvent();
     }
 
 
@@ -49,62 +48,98 @@ public class WireDisplay : MonoBehaviour, IThemeSettable
         CurrentStatusColor = CurrentTheme.Low;
 
 
-        NormalApparence();
+        RegisterEvent();
+        NormalAppearance();
     }
 
     private void RegisterEvent()
     {
-        var wire = GetComponentInParent<Wire>(true);
-        wire.OnSelection += () =>
-        {
-            SelectApparence();
+        var wireEvent = GetComponentInParent<WireEvent>();
+        var wire = wireEvent.MouseInteraction.Context;
 
+        wireEvent.MouseInteraction.MouseEntered += (_) =>
+        {
+            wire.RequestFocus();
+            SelectAppearance();
         };
-        wire.OnDeSelection += NormalApparence;
+        wireEvent.MouseInteraction.MouseExitted += (_) =>
+        {
+            wire.ReleaseFocus();
+            NormalAppearance();
+        };
         wire.OnWireChange += UpdateSmoothedLine;
         wire.OnPlacing += () =>
         {
             UpdateColor();
             Placed = true;
-            NormalApparence();
+            NormalAppearance();
             wire.startPin.OnStateChange += SetStatusColor;
         };
+        wire.OnFocusObtained += () => Focused = true;
+        wire.OnFocusLost += () => Focused = false;
+
+        ScalingManager.i.OnScaleChange += UpdateScale;
     }
+
+    private void OnDestroy()
+    {
+        ScalingManager.i.OnScaleChange -= UpdateScale;
+    }
+
+    private void UpdateScale()
+    {
+        if (Focused)
+            SelectAppearance();
+        else
+            NormalAppearance();
+    }
+
+    private bool Focused;
 
     private void UpdateColor()
     {
-        if (CurrentTheme != null)
-            mat.color = CurrentTheme.GetColour(PinState.LOW);
-        else
+        if (CurrentTheme == null)
         {
             _signalPalette = ThemeManager.Palette;
             CurrentTheme = _signalPalette.GetDefaultTheme();
-            mat.color = CurrentTheme.GetColour(PinState.LOW);
         }
+
+        mat.color = CurrentTheme.GetColour(PinStates.AllLow(Pin.WireType.Simple))[0];
     }
 
 
     private Color CurrentStatusColor;
 
-    void SetStatusColor(PinState pinState, Pin.WireType wireType)
+    void SetStatusColor(PinStates pinState, Pin.WireType wireType)
     {
         if (!Placed) return;
 
-        CurrentStatusColor = CurrentTheme.GetColour(pinState, wireType);
+        CurrentStatusColor = CurrentTheme.GetColour(pinState, wireType)[0];
         mat.color = IsSimulationActive ? CurrentStatusColor : CurrentTheme.Low;
     }
 
 
-    private void SelectApparence()
+    private void SelectAppearance()
     {
+        if (!Focused) return;
         SetUpThickness(ScalingManager.WireSelectedThickness * thicknessMultiplier);
         mat.color = _signalPalette.PinInteractionPalette.WireHighlighte;
     }
 
-    private void NormalApparence()
+    private void NormalAppearance()
     {
+        if (Focused) return;
         SetUpThickness(ScalingManager.WireThickness * thicknessMultiplier);
-        mat.color = IsSimulationActive ? CurrentStatusColor : CurrentTheme.Low;
+        if (Placed)
+        {
+            mat.color = IsSimulationActive ? CurrentStatusColor : CurrentTheme.Low;
+            SetDepth(CurrentTheme.DisplayPriority);
+        }
+        else
+        {
+            mat.color = Color.black;
+            SetDepth(1);
+        }
     }
 
     private void SetUpThickness(float thickness)
@@ -130,9 +165,9 @@ public class WireDisplay : MonoBehaviour, IThemeSettable
             Vector2 localPos = transform.parent.InverseTransformPoint(drawPoints[i]);
             LineRenderer.SetPosition(i, new Vector3(localPos.x, localPos.y, -0.01f));
         }
-
-        float depthOffset = 5;
-        transform.localPosition = Vector3.forward * (depth + depthOffset);
+        //
+        // float depthOffset = 5;
+        // transform.localPosition = Vector3.forward * (depth + depthOffset);
 
         UpdateCollider();
     }
@@ -184,10 +219,10 @@ public class WireDisplay : MonoBehaviour, IThemeSettable
         drawPoints.Add(anchorPoints[^1]);
     }
 
-    public void SetDepth(int numWires)
+    public void SetDepth(float Depth)
     {
-        depth = numWires * 0.01f;
-        transform.localPosition = Vector3.forward * depth;
+        // depth = Depth * 0.01f;
+        transform.localPosition = Vector3.forward * Depth;
     }
 
     public void SetTheme(Palette.VoltageColour voltageColour)

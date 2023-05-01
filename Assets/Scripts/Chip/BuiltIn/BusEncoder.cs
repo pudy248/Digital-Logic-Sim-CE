@@ -32,10 +32,10 @@ namespace Assets.Scripts.Chip
             foreach (var inputState in inputPins.Select(x => x.State))
             {
                 outputSignal <<= 1;
-                outputSignal |= (uint)inputState;
+                outputSignal |= inputState.ToUInt();
             }
 
-            outputPins[0].ReceiveSignal((PinState)outputSignal);
+            outputPins[0].ReceiveSignal(new PinStates(outputSignal));
         }
     }
 }

@@ -51,6 +51,7 @@ namespace SebInput.Internal
 				RightMouseDown?.Invoke();
 			}
 		}
+		
 
 		public void OnClickCompleted(MouseEventSystem.MouseButton mouseButton)
 		{

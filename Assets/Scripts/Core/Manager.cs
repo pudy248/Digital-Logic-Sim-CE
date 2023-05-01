@@ -18,6 +18,7 @@ public enum ChipEditorMode
 public class Manager : MonoBehaviour
 {
 
+    public static Manager instance;
     private ChipEditorMode _chipEditorMode;
 
     public  ChipEditorMode ChipEditorMode
@@ -44,7 +45,6 @@ public class Manager : MonoBehaviour
     [FormerlySerializedAs("UIManager")] public MenuManager menuManager;
 
     private ChipEditor activeChipEditor;
-    public static Manager instance;
 
     void Awake()
     {
@@ -70,13 +70,13 @@ public class Manager : MonoBehaviour
             activeChipEditor.chipInteraction.UnconnectedOutputPins;
         if (unconnectedInputs.Length > 0)
         {
-            Debug.Log("Found " + unconnectedInputs.Length.ToString() +
+            Debug.Log("Found " + unconnectedInputs.Length +
                       " unconnected input pins!");
         }
 
         if (unconnectedOutputs.Length > 0)
         {
-            Debug.Log("Found " + unconnectedOutputs.Length.ToString() +
+            Debug.Log("Found " + unconnectedOutputs.Length +
                       " unconnected output pins!");
         }
     }
@@ -173,8 +173,9 @@ public class Manager : MonoBehaviour
 
     public GameObject ImplamentationHolder;
 
-    public void ClearEditor()
+    private void ClearEditor()
     {
+        //TODO: Don't destroy all the editor
         if (activeChipEditor)
         {
             // if (activeChipEditor.gameObject.transform.childCount > 2)
@@ -189,14 +190,14 @@ public class Manager : MonoBehaviour
             Destroy(activeChipEditor.gameObject);
         }
 
-        activeChipEditor =
-            Instantiate(chipEditorPrefab, Vector3.zero, Quaternion.identity);
+        activeChipEditor = Instantiate(chipEditorPrefab, Vector3.zero, Quaternion.identity);
 
         activeChipEditor.inputsEditor.CurrentEditor = activeChipEditor;
         activeChipEditor.outputsEditor.CurrentEditor = activeChipEditor;
 
         OnEditorClear?.Invoke();
         ChipEditorOptions.instance.SetUIValues(activeChipEditor);
+
     }
 
 

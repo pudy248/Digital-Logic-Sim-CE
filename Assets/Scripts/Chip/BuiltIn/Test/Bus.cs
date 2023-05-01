@@ -15,13 +15,13 @@ public class Bus : Chip
         foreach (var t in inputPins)
         {
             if (!t.HasParent) continue;
-            if (t.State == PinState.FLOATING) continue;
-            outputSignal = t.State;
+            if (t.State[0] == PinState.FLOATING) continue;
+            outputSignal = t.State[0];
         }
 
         foreach (var t in outputPins)
         {
-            t.ReceiveSignal(outputSignal);
+            t.ReceiveSignal(PinStates.Getstates(outputSignal));
         }
 
         SetCol(outputSignal);
@@ -30,7 +30,7 @@ public class Bus : Chip
     void SetCol(PinState pinState)
     {
         var defTheme = signalPalette.GetDefaultTheme();
-        meshRenderer.material.color = defTheme.GetColour(pinState);
+        meshRenderer.material.color = defTheme.GetColour(PinStates.Getstates(pinState))[0];
     }
 
 

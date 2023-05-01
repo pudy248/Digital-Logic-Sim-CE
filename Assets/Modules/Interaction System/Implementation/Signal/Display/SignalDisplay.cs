@@ -16,8 +16,10 @@ namespace Interaction.Display
 
         //Signals
         public MeshRenderer indicatorRenderer;
-        public MeshRenderer pinRenderer;
-        public MeshRenderer wireRenderer;
+        public Transform indicator;
+        [FormerlySerializedAs("pin")] public Transform PinDisplay;
+        public Transform Connection;
+
 
         private bool Interactable;
 
@@ -27,40 +29,67 @@ namespace Interaction.Display
             CurrentTheme = signalPalette.GetDefaultTheme();
 
             var e = GetComponent<ChipSignal>();
-            e.OnStateChange += DrawSignals;
-            e.OnInteractableSet += SetInteractable;
+            e.OnStateChange += (wireType, state) => DrawSignals(state, wireType);
+
+            ScalingManager.i.OnScaleChange += UpdateScale;
         }
 
-        private void SetInteractable(bool interactable)
+        private void Start()
         {
-            Interactable = interactable;
+            UpdateScale();
         }
+
+        private void OnDestroy()
+        {
+            ScalingManager.i.OnScaleChange -= UpdateScale;
+        }
+
+        [Header("Scaling")] public float IndicatoMultiplayer = 2.8f;
+        public float Pinfactor = 6.5f;
+        public float PinOffset = -2.75f;
+        public float Connectfactor = 1f;
+        public float ConnectOffset = 0f;
+
+        private void UpdateScale()
+        {
+            Connection.transform.localScale = new Vector3(ScalingManager.PinSize, ScalingManager.WireThickness / 10, 1);
+            PinDisplay.transform.localPosition = new Vector3(ScalingManager.PinSize, 0, -0.1f);
+            PinDisplay.localPosition = new Vector3(ScalingManager.PinSize * Pinfactor + PinOffset, PinDisplay.localPosition.y,
+                PinDisplay.localPosition.z);
+            Connection.localPosition = new Vector3(ScalingManager.PinSize * Connectfactor + ConnectOffset,
+                Connection.localPosition.y, Connection.localPosition.z);
+
+            indicator.transform.localScale = new Vector3(ScalingManager.PinSize * IndicatoMultiplayer,
+                ScalingManager.PinSize * IndicatoMultiplayer, 1);
+            
+        }
+        
+
+        private void OnValidate()
+        {
+            if (ScalingManager.i != null)
+                UpdateScale();
+        }
+
 
         private WireType WireType;
-        private PinState State;
+        private PinStates State;
 
-        private void DrawSignals(WireType wireType = WireType.Simple, PinState state = PinState.LOW)
+        private void DrawSignals(PinStates state, WireType wireType = WireType.Simple)
         {
             WireType = wireType;
-            State = state;
+            
+            State = state ?? PinStates.Zero;
+            
             if (!indicatorRenderer) return;
 
-            if (Interactable)
-            {
-                indicatorRenderer.material.color = CurrentTheme.GetColour(state, wireType);
-            }
-            else
-            {
-                indicatorRenderer.material.color = signalPalette.nonInteractableCol;
-                pinRenderer.material.color = signalPalette.nonInteractableCol;
-                wireRenderer.material.color = signalPalette.nonInteractableCol;
-            }
+            indicatorRenderer.material.color = CurrentTheme.GetColour(State, wireType)[0];
         }
 
         public void SetTheme(Palette.VoltageColour voltageColour)
         {
             CurrentTheme = voltageColour;
-            DrawSignals(WireType, State);
+            DrawSignals(State, WireType);
         }
     }
 }

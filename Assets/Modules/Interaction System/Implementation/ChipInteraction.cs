@@ -37,7 +37,7 @@ public class ChipInteraction : Interactable
     public static List<Chip> selectedChips;
     Vector2 selectionBoxStartPos;
     Mesh selectionMesh;
-    Vector3[] selectedChipsOriginalPos;
+    Vector3[] selectedChipsOriginalPos; 
 
     [HideInInspector] public List<Pin> visiblePins;
 
@@ -157,8 +157,7 @@ public class ChipInteraction : Interactable
 
         // Left mouse down. Handle selecting a chip, or starting to draw a selection
         // box.
-        if (!Input.GetMouseButtonDown(0) || InputHelper.MouseOverUIObject() ||
-            InputHelper.CompereTagObjectUnderMouse2D(ProjectTags.InterfaceMask, ProjectLayer.Default)) return;
+        if (!Input.GetMouseButtonDown(0) || InputHelper.MouseOverUIObject() || InputHelper.CompereTagObjectUnderMouse2D(ProjectTags.InterfaceMask, ProjectLayer.Default)) return;
 
         if (!RequestFocus()) return;
 

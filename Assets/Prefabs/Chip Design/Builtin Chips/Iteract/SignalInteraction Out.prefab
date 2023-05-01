@@ -7,6 +7,26 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3684785592667193105, guid: b2b3e2d737aaa1145bc264617f6bab7e,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 3684785592667193105, guid: b2b3e2d737aaa1145bc264617f6bab7e,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0.43
+      objectReference: {fileID: 0}
+    - target: {fileID: 3684785592667193105, guid: b2b3e2d737aaa1145bc264617f6bab7e,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 3684785592667193117, guid: b2b3e2d737aaa1145bc264617f6bab7e,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8578806971804596736, guid: b2b3e2d737aaa1145bc264617f6bab7e,
         type: 3}
       propertyPath: signalPrefab

@@ -88,7 +88,6 @@ namespace Core
             var customChip =  PackageCustomChip(packageDisplay);
 
             customChip.Init();
-
             return customChip;
         }
 

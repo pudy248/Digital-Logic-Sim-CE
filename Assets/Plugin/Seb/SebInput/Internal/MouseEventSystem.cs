@@ -221,9 +221,7 @@ namespace SebInput.Internal
 		{
 			Mouse mouse = Mouse.current;
 
-			InputSystemUIInputModule uiInputModule = EventSystem.current?.currentInputModule as InputSystemUIInputModule;
-
-			if (uiInputModule is null)
+			if (EventSystem.current?.currentInputModule is not InputSystemUIInputModule uiInputModule)
 			{
 				Vector2 mouseScreenPoint = vid_mouseSmoothPos;
 				Vector2 mouseWorldPoint = cam.ScreenToWorldPoint(mouseScreenPoint);

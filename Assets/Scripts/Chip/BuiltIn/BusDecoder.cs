@@ -26,12 +26,12 @@ namespace Assets.Scripts.Chip
 		}
 		protected override void ProcessOutput()
 		{
-			var inputSignal = inputPins[0].State;
+			var inputSignal = inputPins[0].State.ToUInt();
 			outputPins.Reverse();
 			foreach(var outputPin in outputPins)
 			{
-				outputPin.ReceiveSignal((PinState)(inputSignal.ToUint() & 1));
-				inputSignal = (PinState) (inputSignal.ToUint()>>1);
+				outputPin.ReceiveSignal(PinStates.Getstates(((inputSignal & 1) ==1)? PinState.HIGH: PinState.LOW));
+				inputSignal = (inputSignal>>1);
 			}
 
 			outputPins.Reverse();

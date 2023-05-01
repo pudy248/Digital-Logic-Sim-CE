@@ -15,7 +15,8 @@ public class HandleEvent : MonoBehaviour
 
     private bool isDragging = false;
     private float clickTime = 0f;
-    private float clickThreshold = 0.2f;
+    private float clickThreshold = 0.1f;
+    
 
     private void OnMouseEnter()
     {

@@ -518,6 +518,7 @@ GameObject:
   - component: {fileID: 4750937599942273985}
   - component: {fileID: 4750937599942274014}
   - component: {fileID: 4750937599942274015}
+  - component: {fileID: 7503115743864354912}
   m_Layer: 0
   m_Name: Placement Area
   m_TagString: Untagged
@@ -583,6 +584,18 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &7503115743864354912
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4750937599942273984}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d96bc35411b547d44a1559e6084575b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &4750937600015594409
 GameObject:
   m_ObjectHideFlags: 0
@@ -628,12 +641,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cc4fb784db75a48cfa8bd655e09c58af, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pinMask:
-    serializedVersion: 2
-    m_Bits: 1024
-  wireMask:
-    serializedVersion: 2
-    m_Bits: 512
   wireHolder: {fileID: 9038027612668037768}
   wirePrefab: {fileID: 761973689955804731, guid: 98fe3bedff56c4adc844cd3884dbdc92,
     type: 3}
