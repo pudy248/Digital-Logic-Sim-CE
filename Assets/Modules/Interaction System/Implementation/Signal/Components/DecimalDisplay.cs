@@ -29,6 +29,8 @@ public class DecimalDisplay : MonoBehaviour
                 decimalValue |= (signalState.Toint() << i);
         }
 
+        if (!text)
+            text = GetComponent<TMP_Text>();
         text.text = decimalValue + "";
     }
 }

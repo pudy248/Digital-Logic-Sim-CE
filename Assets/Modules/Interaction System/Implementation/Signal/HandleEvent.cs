@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Interaction;
 using UnityEngine;
+using VitoBarra.Utils.T;
 
 public class HandleEvent : MonoBehaviour
 {
@@ -14,9 +15,9 @@ public class HandleEvent : MonoBehaviour
     public event Action OnStopDrag;
 
     private bool isDragging = false;
-    private float clickTime = 0f;
-    private float clickThreshold = 0.1f;
-    
+    public Delayer delayer = new Delayer(0.1f);
+
+
 
     private void OnMouseEnter()
     {
@@ -30,7 +31,7 @@ public class HandleEvent : MonoBehaviour
 
     private void OnMouseDown()
     {
-        clickTime = Time.time;
+        delayer.StartCount();
         OnHandleClick?.Invoke();
     }
 
@@ -46,7 +47,7 @@ public class HandleEvent : MonoBehaviour
 
     private void OnMouseDrag()
     {
-        if (!isDragging && Time.time - clickTime > clickThreshold)
+        if (!isDragging && delayer.IsDelayPassed)
         {
             OnStartDrag?.Invoke(transform.position);
             isDragging = true;

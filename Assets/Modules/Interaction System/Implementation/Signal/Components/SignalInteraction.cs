@@ -17,6 +17,10 @@ namespace Interaction.Signal
 {
     public class SignalInteraction : Interactable
     {
+        public const int MaxGroupSize = 16;
+
+        public event Action OnGroupSizeChange;
+
         //Editor 
         [SerializeField] private ChipSignal signalPrefab;
 
@@ -25,7 +29,23 @@ namespace Interaction.Signal
 
         //Work Variable
         public SignalReferenceHolderList Signals { get; private set; }
-        public int SignalNumber { get; private set; }
+
+        private int _groupSize;
+
+        public int GroupSize
+        {
+            get => _groupSize;
+            private set
+            {
+                _groupSize = value switch
+                {
+                    < 0 => 0,
+                    <= MaxGroupSize => value,
+                    _ => MaxGroupSize
+                };
+            }
+        }
+
         private int ID;
 
 
@@ -43,7 +63,7 @@ namespace Interaction.Signal
 
 
         //Property 
-        public bool IsGroup => SignalNumber > 1;
+        public bool IsGroup => GroupSize > 1;
         public string SignalName => Signals.ChipSignals[0].signalName;
         public bool UseTwosComplement = true;
         public Pin.WireType WireType;
@@ -85,13 +105,12 @@ namespace Interaction.Signal
             if (!DecimalDisplay)
                 DecimalDisplay = GetComponentInChildren<DecimalDisplay>(true);
 
-            SignalNumber = WireType != Pin.WireType.Simple ? 1 : _groupSize;
+            GroupSize = WireType != Pin.WireType.Simple ? 1 : _groupSize;
 
 
-
-            Signals = new SignalReferenceHolderList(SignalNumber);
-            for (var i = 0; i < SignalNumber; i++)
-                SignalSpawnLogic(WireType, DisplayEnabled);
+            Signals = new SignalReferenceHolderList(GroupSize);
+            for (var i = 0; i < GroupSize; i++)
+                SpawnSignal(WireType, DisplayEnabled);
 
             if (IsGroup && DisplayEnabled)
                 DecimalDisplay.gameObject.SetActive(true);
@@ -110,38 +129,32 @@ namespace Interaction.Signal
                 RequestFocus();
         }
 
-        private ChipSignal SignalSpawnLogic(Pin.WireType wireType, bool DisplayEnabled)
+        private SignalReferenceHolder SpawnSignal(Pin.WireType wireType, bool DisplayEnabled)
         {
-            var spawnedSignal = CreateSignal();
+            var spawnedSignal = Instantiate(signalPrefab, PinContainers, Quaternion.identity, transform);
 
             var e = Signals.AddSignals(spawnedSignal);
             e.ChipSignal.wireType = wireType;
             RegisterHandler(e.HandleEvent);
 
-            if (!IsGroup || !DisplayEnabled) return spawnedSignal;
+            if (!IsGroup || !DisplayEnabled) return e;
 
             spawnedSignal.OnStateChange += (_, _) =>
                 DecimalDisplay.UpdateDecimalDisplay(Signals.ChipSignals, UseTwosComplement);
 
-            return spawnedSignal;
+            return e;
         }
-
-        private ChipSignal CreateSignal()
-        {
-            return Instantiate(signalPrefab, PinContainers, Quaternion.identity, transform);
-        }
-
 
         private SignalReferenceHolder AddSignal()
         {
-            SignalNumber++;
-            return Signals.AddSignals(CreateSignal());
+            GroupSize++;
+            return SpawnSignal(WireType, DisplayEnabled);
         }
 
         private void RemoveSignal()
         {
             Signals.RemoveSignals();
-            SignalNumber--;
+            GroupSize--;
         }
 
 
@@ -201,13 +214,13 @@ namespace Interaction.Signal
             MoveCenterYPosition(transform.position.y);
         }
 
-        private float AdjustYForGroupMember(float DesideredCeterY, int index)
+        private float GetYForGroupMember(float DesideredCeterY, int index)
         {
             var handleSizeY = ScalingManager.HandleSizeY;
             var GroupSpacing = ScalingManager.GroupSpacing;
 
 
-            float halfExtent = GroupSpacing * (SignalNumber - 1f);
+            float halfExtent = GroupSpacing * (GroupSize - 1f);
             float maxY = DesideredCeterY + halfExtent + handleSizeY / 2f;
             float minY = DesideredCeterY - halfExtent - handleSizeY / 2f;
 
@@ -216,7 +229,7 @@ namespace Interaction.Signal
             else if (minY < BoundsBottom)
                 DesideredCeterY += (BoundsBottom - minY);
 
-            float t = (SignalNumber > 1) ? index / (SignalNumber - 1f) : 0.5f;
+            float t = (GroupSize > 1) ? index / (GroupSize - 1f) : 0.5f;
             t = t * 2 - 1;
             float posY = DesideredCeterY - t * halfExtent;
             return posY;
@@ -233,10 +246,7 @@ namespace Interaction.Signal
         public void MoveCenterYPosition(float NewYcenter)
         {
             for (var i = 0; i < Signals.Count; i++)
-            {
-                var y = AdjustYForGroupMember(NewYcenter, i);
-                Signals[i].ChipSignal.transform.SetYPos(y);
-            }
+                Signals[i].ChipSignal.transform.SetYPos(GetYForGroupMember(NewYcenter, i));
 
             if (DecimalDisplay)
                 DecimalDisplay.transform.SetYPos(GroupCenter.y);
@@ -254,7 +264,7 @@ namespace Interaction.Signal
 
         #region Property
 
-        public void ChangeWireType(Pin.WireType newWireType)
+        public void SetWireType(Pin.WireType newWireType)
         {
             WireType = newWireType;
             // Change output pin wire mode
@@ -304,6 +314,29 @@ namespace Interaction.Signal
             if (IsGroup) return;
             if (Signals.ChipSignals[0] is InputSignal inputSignal)
                 inputSignal.SetBusStatus(state < 0 ? 0 : (uint)state);
+        }
+        
+        public List<SignalReferenceHolder> SetGroupSize(int desiredGroupSize)
+        {
+            var list = new List<SignalReferenceHolder>();
+            var e = desiredGroupSize - GroupSize;
+            switch (e)
+            {
+                case < 0:
+                    for (var i = 0; i < -e; i++)
+                        RemoveSignal();
+                    break;
+                case > 0:
+                    for (var i = 0; i < e; i++)
+                        list.Add(AddSignal());
+
+                    break;
+            }
+
+            MoveCenterYPosition(GroupCenter.y);
+            OnGroupSizeChange?.Invoke();
+
+            return list;
         }
 
         #endregion
@@ -366,26 +399,6 @@ namespace Interaction.Signal
             Gizmos.DrawLine(center, dragStart);
         }
 
-        public List<SignalReferenceHolder> SetGroupSize(int desiredGroupSize)
-        {
-            var list = new List<SignalReferenceHolder>();
-            var e = desiredGroupSize - SignalNumber;
-            switch (e)
-            {
-                case < 0:
-                    for (var i = 0; i < -e; i++)
-                        RemoveSignal();
-                    break;
-                case > 0:
-                    for (var i = 0; i < e; i++)
-                    {
-                        list.Add(AddSignal());
-                    }
-
-                    break;
-            }
-
-            return list;
-        }
+       
     }
 }

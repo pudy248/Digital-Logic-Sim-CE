@@ -13,14 +13,7 @@ public class PinNameDisplay : MonoBehaviour
 
         nameUI.fontSize = ScalingManager.PinDisplayFontSize;
 
-        if (string.IsNullOrEmpty(pin.pinName))
-        {
-            nameUI.text = "UNNAMED PIN";
-        }
-        else
-        {
-            nameUI.text = pin.pinName;
-        }
+        nameUI.text = string.IsNullOrEmpty(pin.pinName) ? "UNNAMED PIN" : pin.pinName;
 
         backgroundPadding.x = ScalingManager.PinDisplayPadding;
         nameUI.rectTransform.localPosition =

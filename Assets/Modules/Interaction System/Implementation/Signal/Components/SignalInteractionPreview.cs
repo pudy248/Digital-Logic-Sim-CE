@@ -35,6 +35,12 @@ namespace Interaction.Signal
             }
         }
 
+        public void SetParent(Transform newParent)
+        {
+                
+        }
+        
+
         public void Enable()
         {
             PreviewSignal.gameObject.SetActive(true);
@@ -45,7 +51,7 @@ namespace Interaction.Signal
             PreviewSignal.gameObject.SetActive(false);
         }
 
-        public void AdjustPosition()
+        public void AdjustYPosition()
         {
             PreviewSignal.MoveCenterYPosition(InputHelper.MouseWorldPos.y);
         }

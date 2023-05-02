@@ -13,6 +13,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using VitoBarra.System.Interaction;
+using VitoBarra.Utils.T;
 
 public class PinAndWireInteraction : Interactable
 {
@@ -33,6 +34,7 @@ public class PinAndWireInteraction : Interactable
     Wire wireToPlace;
     Dictionary<Pin, Wire> wiresByChipInputPin;
     public List<Wire> allWires { get; private set; }
+    public Delayer delayer = new Delayer(0.05f);
 
 
     List<Wire> wiresToPaste;
@@ -70,8 +72,11 @@ public class PinAndWireInteraction : Interactable
                 break;
             case State.PlacingWire:
             {
-                if (InputHelper.AnyOfTheseKeysDown(KeyCode.Escape, KeyCode.Backspace, KeyCode.Delete))
-                    StopPlacingWire(null);
+                if (InputHelper.AnyOfTheseKeysDown(KeyCode.Escape, KeyCode.Backspace, KeyCode.Delete) || Mouse.current.rightButton.wasPressedThisFrame )
+                    StopPlacingWire();
+                if (Mouse.current.leftButton.wasPressedThisFrame&& delayer.IsDelayPassed)
+                    EditorLeftClickHandler();
+                
                 if (wireToPlace != null)
                     wireToPlace.UpdateWireEndPoint(InputHelper.MouseWorldPos);
             }
@@ -159,7 +164,7 @@ public class PinAndWireInteraction : Interactable
         }
         else
         {
-            StopPlacingWire(null);
+            StopPlacingWire();
         }
     }
 
@@ -196,8 +201,9 @@ public class PinAndWireInteraction : Interactable
 
     private void StartPlaceWire()
     {
-        _currentState = State.PlacingWire;
         wireToPlace = Instantiate(wirePrefab, wireHolder);
+        _currentState = State.PlacingWire;
+        delayer.StartCount();
     }
 
 
@@ -278,16 +284,19 @@ public class PinAndWireInteraction : Interactable
 
     #region EditorEvent
 
+    // This region delimit a code that work with a mouse event system that ignore certain layer
+    // TODO: Extend SebInput to do it so
+    
     private MouseInteraction<PlacmentAreaEvent> EditorInteraction;
 
     public void RegisterEditorArea(MouseInteraction<PlacmentAreaEvent> editorAreaEvent)
     {
-        editorAreaEvent.LeftMouseDown += EditorClickHandler;
-        editorAreaEvent.RightMouseDown += StopPlacingWire;
+        // editorAreaEvent.LeftMouseDown += EditorLeftClickHandler;
+        // editorAreaEvent.RightMouseDown += StopPlacingWireHandler;
         EditorInteraction = editorAreaEvent;
     }
 
-    private void EditorClickHandler(PlacmentAreaEvent e)
+    private void EditorLeftClickHandler(PlacmentAreaEvent e = null)
     {
         // Cancel placing wire
         if (CurrentState != State.PlacingWire) return;
@@ -313,8 +322,8 @@ public class PinAndWireInteraction : Interactable
             wireEvent.Context.OnWireDestroy -= NotifyDestroyWire;
         }
 
-        EditorInteraction.LeftMouseDown -= EditorClickHandler;
-        EditorInteraction.RightMouseDown -= StopPlacingWire;
+        // EditorInteraction.LeftMouseDown -= EditorLeftClickHandler;
+        // EditorInteraction.RightMouseDown -= StopPlacingWireHandler;
     }
 
 
@@ -344,7 +353,7 @@ public class PinAndWireInteraction : Interactable
         onConnectionChanged?.Invoke();
     }
 
-    void StopPlacingWire(PlacmentAreaEvent e = null)
+    void StopPlacingWire()
     {
         if (CurrentState != State.PlacingWire) return;
 
@@ -356,6 +365,10 @@ public class PinAndWireInteraction : Interactable
         }
 
         _currentState = State.None;
+    }
+    void StopPlacingWireHandler(PlacmentAreaEvent e = null)
+    {
+        StopPlacingWire();
     }
 
     private void FocusLostHandler()

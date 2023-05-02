@@ -114,7 +114,7 @@ public class ChipInterfaceEditor : MonoBehaviour
         else if (InputHelper.AnyOfTheseKeysDown(KeyCode.Minus, KeyCode.KeypadMinus, KeyCode.Underscore, KeyCode.F))
             DesiredGroupSize--;
 
-        PreviewSignal.AdjustPosition();
+        PreviewSignal.AdjustYPosition();
     }
 
     private void OnMouseExit()
@@ -162,6 +162,9 @@ public class ChipInterfaceEditor : MonoBehaviour
                 transform.localPosition.y, transform.localPosition.z);
         barGraphic.localScale = new Vector3(ScalingManager.IoBarGraphicWidth, 1, 1);
         GetComponent<BoxCollider2D>().size = new Vector2(ScalingManager.IoBarGraphicWidth, 1);
+        
+        
+        
     }
 
 

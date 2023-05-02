@@ -31,18 +31,23 @@ namespace Interaction.Signal.Display
 
             if (Interaction == null) return;
 
-            Interaction.OnFocusObtained += () =>
-            {
-                ChangeHandleColor(HandleState.Focused);
-                ColorCanChange = false;
-            };
-            Interaction.OnFocusLost += () =>
-            {
-                ChangeHandleColor(HandleState.Default);
-                ColorCanChange = true;
-            };
+            Interaction.OnFocusObtained += OnFocusObtainedHandler;
+            Interaction.OnFocusLost += OnFocusLostHandler;
+
 
             ScalingManager.i.OnScaleChange += UpdateScale;
+        }
+
+        private void OnFocusObtainedHandler()
+        {
+            ChangeHandleColor(HandleState.Focused);
+            ColorCanChange = false;
+        }
+
+        private void OnFocusLostHandler()
+        {
+            ChangeHandleColor(HandleState.Default);
+            ColorCanChange = true;
         }
 
         private void Start()
@@ -52,6 +57,8 @@ namespace Interaction.Signal.Display
 
         private void OnDestroy()
         {
+            Interaction.OnFocusObtained -= OnFocusObtainedHandler;
+            Interaction.OnFocusLost -= OnFocusLostHandler;
             ScalingManager.i.OnScaleChange -= UpdateScale;
         }
 
